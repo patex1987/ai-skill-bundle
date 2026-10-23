@@ -1,0 +1,9 @@
+{
+  "description": "Read-only review agents for security, system design, performance, and maintainability.",
+  "agents": [
+    "security-practices",
+    "system-design-scalability",
+    "performance-scalability",
+    "readability-maintainability"
+  ]
+}

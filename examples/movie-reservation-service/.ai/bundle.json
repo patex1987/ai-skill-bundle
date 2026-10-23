@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "packs": ["core", "review", "knowledge-base", "teaching", "nestjs"],
+  "skills": {"add": [], "remove": ["learn-by-doing"]},
+  "agents": {"add": [], "remove": []},
+  "rules": {"add": [], "remove": []},
+  "local": [],
+  "invocation": {"programming-kb": "explicit"},
+  "targets": ["agents-md", "claude", "codex", "cursor", "gemini"],
+  "routing": {
+    "apply": {"skills": "advisory", "agents": "enforce"},
+    "models": {"codex": {"balanced": "gpt-5.4", "deep": "gpt-5.4"}},
+    "overrides": {}
+  }
+}

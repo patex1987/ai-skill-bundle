@@ -1,0 +1,11 @@
+{
+  "description": "FastAPI services and REST API design.",
+  "requires": [
+    "python",
+    "architecture"
+  ],
+  "skills": [
+    "fastapi-service",
+    "rest-api-design"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Repository-authored GitHub Actions and workflows.",
+  "requires": [
+    "typescript"
+  ],
+  "skills": [
+    "github-actions-authoring"
+  ]
+}

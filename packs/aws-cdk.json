@@ -1,0 +1,10 @@
+{
+  "description": "AWS CDK infrastructure in TypeScript and its assertion tests.",
+  "requires": [
+    "typescript"
+  ],
+  "skills": [
+    "aws-cdk-iac",
+    "cdk-infra-testing"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Learning-first collaboration: hybrid teaching, strict learn-by-doing, and an always-on teaching rule.",
+  "skills": [
+    "hybrid-teaching-mode",
+    "learn-by-doing"
+  ],
+  "rules": [
+    "teaching-mode"
+  ]
+}

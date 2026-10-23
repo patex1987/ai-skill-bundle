@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "tiers": {
+    "fast": {
+      "use": "Mechanical, well-specified work with cheap objective checks: search, inventory, summaries, extraction, formatting, running checks",
+      "effort": "low"
+    },
+    "balanced": {
+      "use": "Routine implementation, tests, and focused review against clear acceptance criteria",
+      "effort": "medium"
+    },
+    "deep": {
+      "use": "Ambiguous design, security, data migration, concurrency, public contracts, root-causing after failed attempts",
+      "effort": "high"
+    }
+  },
+  "tools": {
+    "claude": {
+      "models": {"fast": "haiku", "balanced": "sonnet", "deep": "opus"},
+      "efforts": ["low", "medium", "high", "xhigh", "max"]
+    },
+    "codex": {
+      "models": {},
+      "efforts": ["low", "medium", "high", "xhigh", "max"]
+    },
+    "cursor": {
+      "models": {},
+      "efforts": []
+    },
+    "gemini": {
+      "models": {},
+      "efforts": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "description": "React/frontend clean architecture.",
+  "requires": [
+    "typescript"
+  ],
+  "skills": [
+    "frontend-clean-architecture"
+  ]
+}

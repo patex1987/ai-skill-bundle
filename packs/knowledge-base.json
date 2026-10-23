@@ -1,0 +1,6 @@
+{
+  "description": "Retrieval from a local programming knowledge base configured by PROGRAMMING_KB_DIR (explicit-only by default).",
+  "skills": [
+    "programming-kb"
+  ]
+}

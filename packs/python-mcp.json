@@ -1,0 +1,9 @@
+{
+  "description": "Python MCP servers wrapping downstream APIs.",
+  "requires": [
+    "python"
+  ],
+  "skills": [
+    "python-mcp-service"
+  ]
+}

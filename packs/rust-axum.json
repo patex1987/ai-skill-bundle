@@ -1,0 +1,10 @@
+{
+  "description": "Rust Axum/Tokio services and Rust testing.",
+  "requires": [
+    "architecture"
+  ],
+  "skills": [
+    "rust-axum-service",
+    "rust-testing"
+  ]
+}

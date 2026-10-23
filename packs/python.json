@@ -1,0 +1,7 @@
+{
+  "description": "Python toolchain (uv, Ruff) and pytest.",
+  "skills": [
+    "python-tooling",
+    "pytest-testing"
+  ]
+}

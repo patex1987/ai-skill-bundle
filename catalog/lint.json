@@ -1,0 +1,13 @@
+{
+  "description": "Portability lint for catalog content. Catalog entities must not carry host paths, personal identifiers, project names, or pinned vendor model IDs; those belong in a repository's .ai/overlays, project guidance, or bundle.json.",
+  "forbidden": [
+    {"pattern": "/home/[a-z]", "reason": "host-specific absolute path"},
+    {"pattern": "/Users/[A-Za-z]", "reason": "host-specific absolute path"},
+    {"pattern": "[A-Z]:\\\\Users\\\\", "reason": "host-specific absolute path"},
+    {"pattern": "patex1987", "reason": "personal identifier"},
+    {"pattern": "movie[-_ ]?(reservation|recommendation|platform)", "reason": "project-specific name"},
+    {"pattern": "golden[-_ ]path", "reason": "project-specific name"},
+    {"pattern": "\\bgpt-\\d", "reason": "pinned vendor model ID; map tiers in routing.json or bundle.json"},
+    {"pattern": "claude-(opus|sonnet|haiku)-\\d", "reason": "pinned vendor model ID; map tiers in routing.json or bundle.json"}
+  ]
+}

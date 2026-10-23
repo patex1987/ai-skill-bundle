@@ -1,0 +1,10 @@
+{
+  "description": "NestJS services.",
+  "requires": [
+    "typescript",
+    "architecture"
+  ],
+  "skills": [
+    "nestjs"
+  ]
+}
