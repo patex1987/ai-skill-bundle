@@ -1,6 +1,7 @@
 ---
 name: plan-validation
 description: Validate an implementation against the agreed plan, acceptance scenarios, and repository checks, recording evidence and remaining gaps. Use for final verification or reviewing whether a planned change is complete.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: high

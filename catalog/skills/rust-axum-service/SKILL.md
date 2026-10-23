@@ -1,6 +1,7 @@
 ---
 name: rust-axum-service
 description: Implement, refactor, review, or explain Rust HTTP services built on Axum and Tokio, including typed Serde request/response contracts, extractors, router state, error enums and IntoResponse mapping, timeouts and cancellation, bounded inputs, OpenTelemetry tracing and metrics, and graceful shutdown.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

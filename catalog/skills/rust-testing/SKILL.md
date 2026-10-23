@@ -1,6 +1,7 @@
 ---
 name: rust-testing
 description: Create, organise, refactor, review, or explain Rust tests for services and libraries, including pure unit tests, table-driven cases, in-process Axum router tests with tower::ServiceExt, tokio::test with paused time, trace and metric contract tests, and process/container smoke tests.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

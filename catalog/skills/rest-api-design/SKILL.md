@@ -1,6 +1,7 @@
 ---
 name: rest-api-design
 description: Design, review, document, or change REST/HTTP API endpoints, including resource naming, methods, status codes, request/response shapes, pagination, filtering and sorting, versioning and compatibility, authentication boundaries, OpenAPI documentation, error contracts, and API tests. Examples use FastAPI, but the guidance is framework-neutral.
+license: MIT-0
 metadata:
   routing-tier: deep
   routing-effort: medium

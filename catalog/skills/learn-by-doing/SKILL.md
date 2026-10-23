@@ -1,6 +1,7 @@
 ---
 name: learn-by-doing
 description: Strict coaching mode in which the human implements the core logic while the AI plans, navigates, scaffolds tests and boilerplate, places TODO(human) markers, reviews, and gives graduated debugging hints, withholding production code until the rescue protocol allows it. Use only when the user asks for learn-by-doing or strict learning mode.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

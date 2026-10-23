@@ -1,6 +1,7 @@
 ---
 name: external-research
 description: Research engineering questions beyond the current repository using a configured knowledge base and primary external sources, producing a cited Markdown report. Supports optional deeper investigation and requested wiki updates.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

@@ -1,6 +1,7 @@
 ---
 name: github-actions-authoring
 description: Write, test, or review repository-authored GitHub Actions (composite and JavaScript/TypeScript actions) and reusable workflows, including input validation, generated dist/lib output, Node test-runner coverage with fake git/gh executables, permissions, and SHA-pinned third-party actions.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

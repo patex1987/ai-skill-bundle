@@ -1,6 +1,7 @@
 ---
 name: principal-engineer-planner
 description: Turn a feature, refactor, integration, migration, infrastructure change, or ambiguous engineering task into a reviewable implementation plan: requirements, repository evidence, design alternatives, risks, agreed acceptance tests, ordered steps with suggested model tiers, and rollout. Use before non-trivial implementation; not for obvious single-file edits.
+license: MIT-0
 metadata:
   routing-tier: deep
   routing-effort: high

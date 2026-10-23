@@ -165,3 +165,8 @@ Do this one repository at a time, in its own issue, branch, and pull request.
 - `imports/` is a local, unversioned snapshot of the platform repositories' `.ai`
   folders and the previous composer, kept for writing overlays. The source of
   truth for that content is the platform repositories themselves.
+
+## License
+
+[MIT No Attribution (MIT-0)](LICENSE). Copy, adapt, and redistribute any skill,
+agent, or rule, alone or together, with or without credit.

@@ -1,6 +1,7 @@
 ---
 name: cdk-infra-testing
 description: Create, refactor, review, or explain infrastructure tests for AWS CDK apps, including CloudFormation assertion tests (Template, Match), offline synth contracts, shell smoke-tool self-tests, and dashboard JSON validation. Use when infrastructure behaviour, CDK configuration, or infra CI checks change.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

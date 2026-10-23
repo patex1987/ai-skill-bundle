@@ -1,6 +1,7 @@
 ---
 name: vitest-testing
 description: Create, refactor, review, or explain TypeScript tests with Vitest for backend services and frontends, including fake-first test doubles, factories and fixtures, test.extend, fake timers, framework testing modules, HTTP/e2e tests, and test categorisation. Use for any Vitest test work.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

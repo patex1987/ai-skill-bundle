@@ -1,6 +1,7 @@
 ---
 name: aws-cdk-iac
 description: Design, implement, review, or explain AWS CDK infrastructure in TypeScript, including construct levels, synthesized CloudFormation, networking and VPC endpoints, IAM, ECS/Fargate, assets, configuration boundaries, synth/diff/deploy safety, and CDK versioning.
+license: MIT-0
 metadata:
   routing-tier: deep
   routing-effort: high

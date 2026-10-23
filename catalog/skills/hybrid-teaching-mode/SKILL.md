@@ -1,6 +1,7 @@
 ---
 name: hybrid-teaching-mode
 description: Guide real implementation, refactoring, testing, or debugging while reserving a bounded, meaningful slice for the engineer, with scaffolding, graduated hints, review, and verification. Use when the user asks for hybrid teaching, learning-first coding, deliberate practice, reduced AI reliance, or a part to implement themselves; not for explanation-only requests or fully autonomous work.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

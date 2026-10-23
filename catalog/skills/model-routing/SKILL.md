@@ -1,6 +1,7 @@
 ---
 name: model-routing
 description: Choose the model tier and reasoning effort for delegated or multi-step work, and escalate or de-escalate during execution. Use when planning delegation to subagents, fanning out parallel work, retrying after failed attempts, or deciding whether a task needs a stronger or cheaper model.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: low

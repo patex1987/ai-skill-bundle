@@ -1,6 +1,7 @@
 ---
 name: clean-architecture
 description: Design, review, or refactor dependency direction and ownership boundaries (domain, application/use cases, ports and adapters, presentation, composition root) in services, frontends, CLIs, or automation. Use when deciding where code belongs or whether an abstraction earns its cost; skip mechanical edits with no architectural choice.
+license: MIT-0
 metadata:
   routing-tier: deep
   routing-effort: high

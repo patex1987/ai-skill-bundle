@@ -1,6 +1,7 @@
 ---
 name: fastapi-service
 description: Write or modify Python FastAPI service code, including routers, Pydantic v2 request/response models, dependency injection with Depends or a DI container, lifespan start-up and shutdown, middleware, error translation, async I/O, and API performance concerns.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

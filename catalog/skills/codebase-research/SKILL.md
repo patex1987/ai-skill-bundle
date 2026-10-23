@@ -1,6 +1,7 @@
 ---
 name: codebase-research
 description: Investigate an existing subsystem and write an evidence-backed Markdown context document before design, debugging, migration, or implementation. Use for unfamiliar or substantial code paths; implementation is a separate task.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

@@ -1,6 +1,7 @@
 ---
 name: nestjs
 description: Implement, refactor, or explain NestJS service code, including modules, providers and injection tokens, controllers, GraphQL resolvers, DTOs, validation, guards and interceptors, and NestJS testing. Pair with clean-architecture for layer boundaries.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

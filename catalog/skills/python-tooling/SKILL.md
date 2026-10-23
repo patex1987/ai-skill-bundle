@@ -1,6 +1,7 @@
 ---
 name: python-tooling
 description: Set up or change a Python project's toolchain and command-line entry points with uv, pytest, Ruff, and pyproject.toml, including dependency changes, lockfiles, pinned Python versions, frozen CI installs, local-first check commands, and readable CLI and control-flow conventions.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: low

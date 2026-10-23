@@ -1,6 +1,7 @@
 ---
 name: pytest-testing
 description: Create, organise, refactor, review, or explain Python tests with pytest, including fake-first test doubles, fixtures and conftest placement, async tests with pytest-asyncio, FastAPI/httpx API tests, httpx.MockTransport adapter tests, CLI tests, and required failure-path coverage. Use for any pytest work.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

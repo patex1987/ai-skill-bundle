@@ -1,6 +1,7 @@
 ---
 name: python-mcp-service
 description: Implement, refactor, review, or explain Python MCP servers (FastMCP or the MCP Python SDK) that wrap a downstream API, including tool names and input/result contracts, httpx client adapters, timeouts and error classification, safe error envelopes, health routes, lifecycle, and trace/correlation propagation.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

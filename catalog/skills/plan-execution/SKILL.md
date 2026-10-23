@@ -1,6 +1,7 @@
 ---
 name: plan-execution
 description: Implement an agreed engineering plan using tests defined during planning, a test-first feedback loop, and evidence-backed progress tracking. Use after implementation is authorized; planning and final validation have separate workflows.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

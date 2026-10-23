@@ -1,6 +1,7 @@
 ---
 name: frontend-clean-architecture
 description: Use when designing, refactoring, or reviewing frontend architecture with React or other UI frameworks, especially when separating domain logic, use cases, hooks/controllers, presenters, API clients, runtime validation, and UI components.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

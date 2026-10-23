@@ -1,6 +1,7 @@
 ---
 name: typescript
 description: Design or refactor TypeScript types, function signatures, modules, and runtime validation boundaries, and explain compile-time versus runtime guarantees. Use for TypeScript type design, replacing any, module and export structure, or strictness questions in any TypeScript codebase.
+license: MIT-0
 metadata:
   routing-tier: balanced
   routing-effort: medium

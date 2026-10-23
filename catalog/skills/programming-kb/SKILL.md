@@ -1,6 +1,7 @@
 ---
 name: programming-kb
 description: Retrieve reusable engineering guidance (architecture, backend, system design, testing, cloud, and implementation patterns) from the user's local programming knowledge base at PROGRAMMING_KB_DIR, citing the notes used and flagging stale ones. Use when the user asks to consult their knowledge base or KB.
+license: MIT-0
 metadata:
   routing-tier: fast
   routing-effort: low
