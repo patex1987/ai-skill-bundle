@@ -1,0 +1,201 @@
+{
+  "skill_name": "pr-walkthrough",
+  "notes": "Build a scratch git repository: copy evals/files/base/ to an empty directory, commit it on main, create branch feature/coupons, copy evals/files/head/ over it, and commit with evals/files/PR.md as the message. Run cases from that branch. For 'with-record' cases, copy evals/files/walkthrough-record.md to docs/reviews/feature-coupons-walkthrough.md and fill in the two SHAs. Multi-turn cases state the conversation so far in the prompt.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "overview-first",
+      "prompt": "Walk me through the changes on this branch against main.",
+      "expected_output": "Pins the target, reads every changed file, and sends only the overview: plain-language purpose, a small map, size, and an ordered topic list, then asks to confirm the order.",
+      "files": [
+        "evals/files/PR.md"
+      ],
+      "expectations": [
+        "Pins the comparison to the merge base with main and states the target in one sentence",
+        "The first message is an overview, not Topic 1, and contains no findings list",
+        "The overview explains in plain terms what the change does (customers can apply a coupon to get a discount)",
+        "Includes a short map of how request, coupon lookup, and total calculation connect",
+        "States the size of the change (files and lines)",
+        "Lists 3 to 6 numbered topics grouped by idea, with the coupon contract or types before the total calculation and the route wiring after it",
+        "Tests are placed with the topic they prove, or in a single tests topic after the code, never first",
+        "Asks the user to start or reorder, then stops"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "topic-format",
+      "prompt": "Order looks good. Start.",
+      "expected_output": "Sends exactly Topic 1/N in the defined format and waits.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts"
+      ],
+      "expectations": [
+        "Starts with 'Topic 1/N — <name>' and lists the files the topic covers",
+        "Has an 'In plain terms' part of one or two sentences with no code identifiers",
+        "Has 'How it works' bullets that each cite a path:line or path:start-end",
+        "Shows at most two snippets, each at most about 12 lines, with a path:line comment",
+        "Stays within about 30 lines",
+        "Ends with a gate naming Topic 2/N and its name, and does not start Topic 2"
+      ],
+      "tags": [
+        "after-overview"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "planted-findings",
+      "prompt": "next",
+      "expected_output": "Presents the total calculation topic and raises the negative-total defect and the self-referential test as evidenced findings with proposed routing.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts"
+      ],
+      "expectations": [
+        "Raises a blocking finding that a fixed coupon larger than the subtotal returns a negative total, citing src/checkout/total.ts:14",
+        "Raises a finding that the percentage test computes its expected value from WELCOME_PERCENT, the production constant it verifies, citing test/total.test.ts",
+        "Notes that no test covers a fixed coupon larger than the subtotal",
+        "Each finding has a tag, evidence, and a suggestion; findings are numbered",
+        "Proposes a route for each finding and asks the user to route or ask questions",
+        "Does not edit any file"
+      ],
+      "tags": [
+        "at-total-calculation-topic"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "clarification-stays-on-topic",
+      "prompt": "Before routing: why does the percentage branch round but the fixed branch doesn't?",
+      "expected_output": "Answers within the same topic, keeps the counter, and repeats the gate.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts"
+      ],
+      "expectations": [
+        "Keeps the same 'Topic M/N' heading; M does not advance",
+        "Answers with reference to src/checkout/total.ts lines and the integer-cents representation",
+        "Repeats the routing gate for the open findings instead of moving to the next topic"
+      ],
+      "tags": [
+        "at-total-calculation-topic"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "ok-is-not-a-fix",
+      "prompt": "ok",
+      "expected_output": "Treats the bare ok as accepting the proposed routing for the record, not as permission to fix.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts"
+      ],
+      "expectations": [
+        "Records the findings with their proposed routes, or confirms the routing in one line",
+        "Does not modify src/checkout/total.ts or any test",
+        "Offers the next topic by number and name, or the option to ask more about this one"
+      ],
+      "tags": [
+        "at-total-calculation-topic",
+        "findings-proposed"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "explain-mode",
+      "prompt": "I'm new to this codebase. Just explain this PR to me, no review needed.",
+      "expected_output": "Runs in explain mode: overview and topics with plain-language explanations, no hunt for nits.",
+      "files": [
+        "evals/files/PR.md"
+      ],
+      "expectations": [
+        "States that it is in explain mode",
+        "Sends the overview and topic list first and waits",
+        "Does not include should or nit findings in topics",
+        "May mention the negative-total defect briefly as serious, without a findings routing gate"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "resume-from-record",
+      "prompt": "New session. Let's continue the coupon walkthrough.",
+      "expected_output": "Reads the record, checks the head, reports status in three lines, and resumes at Topic 3/4.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts",
+        "evals/files/walkthrough-record.md"
+      ],
+      "expectations": [
+        "Reads docs/reviews/feature-coupons-walkthrough.md before anything else",
+        "Compares current HEAD and changed paths with the pinned values",
+        "Gives a short status naming the position and the open blocking finding",
+        "Resumes with the full 'Topic 3/4 — Checkout wiring' message, not from Topic 1"
+      ],
+      "tags": [
+        "with-record"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "close-checks-pr-claims",
+      "prompt": "Topics are all done. Wrap up.",
+      "expected_output": "Closes with a short summary that flags unsupported PR description claims and points to the record.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts",
+        "evals/files/walkthrough-record.md"
+      ],
+      "expectations": [
+        "Summarizes the change in two sentences and lists findings by tag with the blocking one named",
+        "Flags that 'Tested with npm test' does not cover the 400 response for unknown or expired coupons or the negative total",
+        "Lists what it could not verify",
+        "Points to the record instead of repeating it; stays within about 15 lines",
+        "Offers next steps (fix on request, specialist review, posting) without doing any of them"
+      ],
+      "tags": [
+        "with-record",
+        "all-topics-done"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "posting-needs-approval",
+      "prompt": "Post your findings on the PR.",
+      "expected_output": "Drafts the comments with their target lines and waits for approval before posting.",
+      "files": [
+        "evals/files/PR.md",
+        "evals/files/head/src/checkout/total.ts",
+        "evals/files/head/src/http/routes.ts",
+        "evals/files/head/test/total.test.ts",
+        "evals/files/head/src/coupons/coupon.ts",
+        "evals/files/walkthrough-record.md"
+      ],
+      "expectations": [
+        "Drafts one comment per open finding tied to path:line, plus a short summary comment",
+        "Shows the exact text and asks for approval before posting anything",
+        "Proposes posting them as one pending review and asks which review state to use; does not approve on its own"
+      ],
+      "tags": [
+        "with-record"
+      ]
+    }
+  ]
+}

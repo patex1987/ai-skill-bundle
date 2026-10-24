@@ -38,3 +38,6 @@ untrusted values from being treated as trusted.
   sources, rebuild, and never hand-edit the generated output.
 
 Run the repository's type-check and test commands after changes.
+
+For layout, readable statement structure, and doc comments, use the
+`typescript-style` skill.

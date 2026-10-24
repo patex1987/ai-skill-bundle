@@ -1,0 +1,79 @@
+{
+  "skill_name": "typescript-style",
+  "evals": [
+    {
+      "id": 1,
+      "name": "restyle-dense-file",
+      "prompt": "Clean up src/poll.ts so it reads well. Keep the behaviour the same.",
+      "expected_output": "Restructures the file with blank lines, named intermediates, guard-style flow, named constants, TSDoc without types, and an awaited cancel, then runs the repository's format, lint, and type-check commands.",
+      "files": ["evals/files/package.json", "evals/files/src/poll.ts"],
+      "expectations": [
+        "Adds a blank line after the imports and between each top-level declaration",
+        "Splits the nested describe call: the config read, the parsed region, and the status each get a named const",
+        "Replaces 30000 and 500 with named constants that carry a unit, such as MAX_DELAY_MS and BASE_DELAY_MS",
+        "Removes the else after return and puts braces around the if body",
+        "Rewrites the poller doc comment without {type} braces, using @param name - description, and states that deadline is an absolute timestamp in milliseconds and that it throws on timeout",
+        "Fixes the floating promise in stop by awaiting or returning client.cancel, and makes stop a function declaration with a doc comment",
+        "Flags the `as JobStatus` cast and suggests a type guard, deferring the detailed type design to the typescript skill",
+        "Does not change observable behaviour (same retry timing and the same error)",
+        "Runs format and lint fixers, then format:check, lint, and build, using the package scripts rather than invented commands"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "comment-cleanup",
+      "prompt": "Review the comments in src/overcommented.ts.",
+      "expected_output": "Removes comments that narrate code, the commented-out code, and the typed JSDoc, and replaces them with a short TSDoc comment that says what the types cannot (rate as a fraction, rounding).",
+      "files": ["evals/files/src/overcommented.ts"],
+      "expectations": [
+        "Identifies the narrating line comments (import, multiply, log, return) as noise and removes them",
+        "Removes the commented-out line instead of keeping it",
+        "Removes the duplicate `// This function adds tax` comment above the JSDoc",
+        "Drops the {number} types from @param and @returns",
+        "The new doc comment says that rate is a fraction (0.2 means 20 %) and that the result is rounded to a whole number",
+        "Keeps or adds no inline comment unless it explains a reason the code cannot show"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "respect-repo-config",
+      "prompt": "Add a function to src/poll.ts that lists running jobs. The repo's Prettier config uses double quotes and no semicolons.",
+      "expected_output": "Writes the new function in the repository's configured style (double quotes, no semicolons), does not reformat the rest of the file, and runs the formatter on the touched file.",
+      "files": ["evals/files/package.json", "evals/files/src/poll.ts"],
+      "expectations": [
+        "Follows the repository's quote and semicolon configuration over the skill's own preferences",
+        "Does not reformat unrelated code in the file, or proposes that as a separate formatting-only change",
+        "The new function is a documented function declaration separated from its neighbours by blank lines",
+        "Runs the format and lint commands from package.json"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "propose-lint-rules",
+      "prompt": "Our agent keeps writing TypeScript with no blank lines and no doc comments, and Prettier doesn't fix it. How do we stop that?",
+      "expected_output": "Explains that Prettier keeps but never adds blank lines, and proposes the padding-line, class-member, curly, require-jsdoc, no-types, and tsdoc/syntax rules from the lint recipe, with a staged rollout. It does not install anything without agreement.",
+      "files": ["evals/files/package.json"],
+      "expectations": [
+        "States that Prettier preserves blank lines but does not insert them",
+        "Proposes @stylistic/padding-line-between-statements with rules for imports, top-level declarations, blocks, and return",
+        "Proposes jsdoc/require-jsdoc with publicOnly and enableFixer set to false, and explains why the fixer is disabled",
+        "Mentions jsdoc/no-types or tsdoc/syntax to keep types out of comments",
+        "Suggests a staged rollout: scoped files, a formatting-only commit in .git-blame-ignore-revs, warn before error, and adding the checks to CI",
+        "Asks before adding dependencies or editing the ESLint config"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "review-tags",
+      "prompt": "Review src/poll.ts as part of a PR. Just give me the style findings.",
+      "expected_output": "Reports one layout nit for the file with the lint rule that would catch it, raises the misleading public doc comment as a should, and reports the floating promise as a bug rather than style.",
+      "files": ["evals/files/src/poll.ts"],
+      "expectations": [
+        "Groups the missing blank lines and braces into a single nit that names the lint rule, instead of one comment per line",
+        "Tags the poller doc comment (types repeated, no units, no throws) as should, because it documents a public contract",
+        "Reports the unawaited client.cancel in stop as a correctness issue, not a style nit",
+        "Each finding cites path:line"
+      ]
+    }
+  ]
+}

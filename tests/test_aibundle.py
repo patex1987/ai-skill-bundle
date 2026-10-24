@@ -99,6 +99,21 @@ class CatalogValidation(Workspace):
         agent.write_text(agent.read_text().replace('metadata:\n', 'metadata:\n  skills: [no-such-skill]\n', 1))
         self.assertIn("names unknown skill 'no-such-skill'", self.bundle('validate').stdout)
 
+    def test_skill_evals_are_checked(self):
+        evals = self.catalog / 'catalog/skills/principal-engineer-planner/evals/evals.json'
+        data = json.loads(evals.read_text())
+        data['evals'].append({'id': data['evals'][0]['id'], 'prompt': 'x', 'expectations': [],
+                              'files': ['evals/files/missing.md', '../../typescript/SKILL.md']})
+        evals.write_text(json.dumps(data))
+        result = self.bundle('validate')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('needs a unique integer id', result.stdout)
+        self.assertIn('needs a non-empty list of expectations', result.stdout)
+        self.assertIn("file 'evals/files/missing.md'", result.stdout)
+        self.assertIn("file '../../typescript/SKILL.md' must exist inside", result.stdout)
+        evals.write_text(json.dumps({**data, 'skill_name': 'other'}))
+        self.assertIn("skill_name must be 'principal-engineer-planner'", self.bundle('validate').stdout)
+
     def test_pack_cycles_are_rejected(self):
         packs = self.catalog / 'packs'
         data = json.loads((packs / 'typescript.json').read_text())
@@ -235,7 +250,9 @@ class Rendering(Workspace):
         self.assertIn('model: opus', claude)
         self.assertIn('effort: high', claude)
         self.assertIn('tools: "Read, Grep, Glob, Bash"', claude, 'needs git to resolve a change range')
-        self.assertIn('tools: "Read, Grep, Glob"\n', self.read('.claude/agents/system-design-scalability.md'))
+        self.assertIn('tools: "Read, Grep, Glob"\n', self.read('.claude/agents/scout.md'))
+        self.assertIn('tools: "Read, Grep, Glob, Bash"', self.read('.claude/agents/system-design-scalability.md'),
+                      'change reviewers need git to resolve a change range')
         self.assertIn('model: haiku', self.read('.claude/agents/scout.md'))
         codex = self.read('.codex/agents/scout.toml')
         self.assertNotIn('model =', codex, 'unmapped tiers inherit the session model')

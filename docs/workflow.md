@@ -12,7 +12,7 @@ adds independent reviewers.
 | Plan + annotate | `principal-engineer-planner` | `docs/plans/<feature>.md` |
 | Implement | `plan-execution` | code and tests; ticks steps in the plan |
 | Validate | `plan-validation` | evidence in the plan or `docs/validation/<task>.md` |
-| Review | `security-practices`, `system-design-scalability`, `performance-scalability`, `readability-maintainability` | findings |
+| Review | `pr-walkthrough`; agents `security-practices`, `system-design-scalability`, `performance-scalability`, `readability-maintainability` | findings |
 | Helpers | `scout`, `check-runner`, `model-routing` | search results and check output, tier changes |
 
 Prompts below are examples. The skill names in them make the skills trigger
@@ -77,6 +77,18 @@ reliably.
 
     > Turn the step list into a granular todo checklist. Don't implement yet.
 
+**Guided review instead of, or after, annotating.** When you want the planner to
+lead, ask:
+
+> Use principal-engineer-planner to review `docs/plans/<feature>.md` with me. Ask
+> one question at a time.
+
+It shows `Question M/N — <topic>` with context, tradeoffs, and a recommendation,
+challenges assumptions and failure modes, and skips anything the repository already
+answers. After each decision it updates the plan. It tracks the queue, decisions,
+and deferred questions in `docs/plans/<feature>-review.md`, so "continue the plan
+review" resumes in a new session. It never starts implementation.
+
 Steer through the document, not through chat. The plan is the shared state that
 survives context compaction and goes into the PR.
 
@@ -106,9 +118,16 @@ survives context compaction and goes into the PR.
 
     It checks the result against the acceptance tests and repository checks, and
     records the evidence and gaps.
-15. **Review.** For changes that touch security, data, contracts, or performance,
-    run the matching `review` agents. Agents are rendered with `enforce` routing,
-    so each runs on its own tier's model.
+15. **Review.** To understand the change and review it together, walk through it:
+
+    > Use pr-walkthrough on this branch.
+
+    It starts with an overview and a topic list, then goes through `Topic M/N`, one
+    topic at a time. Each topic has a plain-language explanation, `path:line`
+    references, short snippets, and tagged findings. For a one-shot specialist
+    check of changes that touch security, data, contracts, or performance, run the
+    matching `review` agents instead, or from inside the walkthrough. Agents are
+    rendered with `enforce` routing, so each runs on its own tier's model.
 16. **Ship small.** Commit the research, the plan, and the code in one small PR,
     so the reasoning stays with the change.
 

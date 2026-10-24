@@ -159,6 +159,43 @@ def lint_patterns():
             for p in data.get('forbidden', [])]
 
 
+def validate_evals(skill_dir, name):
+    """Check the optional evals/evals.json validation examples of a skill."""
+    file = skill_dir / 'evals' / 'evals.json'
+    if not file.exists():
+        return []
+    where = file.relative_to(ROOT)
+    try:
+        data = json.loads(file.read_text())
+    except json.JSONDecodeError as error:
+        return [f'{where}: invalid JSON: {error}']
+    if not isinstance(data, dict) or data.get('skill_name') != name:
+        return [f'{where}: skill_name must be {name!r}']
+    cases = data.get('evals')
+    if not isinstance(cases, list) or not cases:
+        return [f'{where}: evals must be a non-empty list']
+    problems, ids = [], set()
+    for number, case in enumerate(cases, start=1):
+        label = f'{where}: eval #{number}'
+        if not isinstance(case, dict):
+            problems.append(f'{label} must be an object')
+            continue
+        if not isinstance(case.get('id'), int) or case['id'] in ids:
+            problems.append(f'{label} needs a unique integer id')
+        ids.add(case.get('id'))
+        if not isinstance(case.get('prompt'), str) or not case['prompt'].strip():
+            problems.append(f'{label} needs a prompt')
+        expectations = case.get('expectations')
+        if not isinstance(expectations, list) or not expectations or \
+                not all(isinstance(e, str) and e.strip() for e in expectations):
+            problems.append(f'{label} needs a non-empty list of expectations')
+        for target in case.get('files', []):
+            resolved = (skill_dir / str(target)).resolve()
+            if not resolved.is_relative_to(skill_dir.resolve()) or not resolved.is_file():
+                problems.append(f'{label}: file {target!r} must exist inside the skill directory')
+    return problems
+
+
 def validate_catalog():
     problems = []
     entities = catalog_entities()
@@ -210,6 +247,7 @@ def validate_catalog():
                 resolved = (path / target).resolve()
                 if not resolved.is_relative_to(path.resolve()) or not resolved.exists():
                     problems.append(f'{where}: link {target!r} must resolve inside the skill directory')
+            problems.extend(validate_evals(path, name))
         files = [path] if path.is_file() else [p for p in path.rglob('*')]
         for file in files:
             if file.is_symlink():

@@ -1,7 +1,8 @@
 {
-  "description": "TypeScript type design and Vitest testing.",
+  "description": "TypeScript type design, code style and doc comments, and Vitest testing.",
   "skills": [
     "typescript",
+    "typescript-style",
     "vitest-testing"
   ]
 }

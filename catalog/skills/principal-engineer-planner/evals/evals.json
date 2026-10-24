@@ -1,0 +1,181 @@
+{
+  "skill_name": "principal-engineer-planner",
+  "notes": "Validation examples for interactive plan review and its boundary with plan authoring. Copy evals/files/ into a scratch repository root before running a case. Cases marked 'with-record' use docs/plans/order-export-review.md; the others delete it first. Multi-turn cases state the conversation so far in the prompt.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "start-review-builds-queue",
+      "prompt": "Review docs/plans/order-export.md with me. I want to understand and challenge the design before we build it.",
+      "expected_output": "Reads the plan and research, shows a grouped question queue, creates a linked review record, and asks only the first question with context, tradeoffs, and a recommendation.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/research/order-export-codebase.md",
+        "evals/files/config/exports.json"
+      ],
+      "expectations": [
+        "Reads the plan and the linked research report before asking any question",
+        "Shows the initial queue grouped by topic with a total count",
+        "The first question message starts with 'Question 1/N — <topic>' and contains exactly one question",
+        "The question gives context, options with tradeoffs, and an explicit recommendation",
+        "Does not ask for the maximum rows per export; resolves it from config/exports.json as evidence",
+        "Flags that the 24-hour link expiry assumption contradicts downloadLinkTtlMinutes in config/exports.json instead of asking the user to guess",
+        "Queues at least one operational failure-mode question, such as queue redelivery during an export or unstable paging on createdAt",
+        "Creates docs/plans/order-export-review.md with the queue, statuses, and current position, and adds a 'Review record:' link to the plan",
+        "Changes no files outside docs/plans/ and writes no code"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "clarification-does-not-advance",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "Continuing the review at Question 3/6 (Q-03, redelivery). Before I decide: what actually happens today if the worker crashes after uploading half the file?",
+      "expected_output": "Answers the follow-up within Q-03 using the research evidence, keeps the position at 3/6, and asks for the Q-03 decision again.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md",
+        "evals/files/docs/research/order-export-codebase.md"
+      ],
+      "expectations": [
+        "Keeps the header at 'Question 3/6 — Failure modes'; M does not advance",
+        "Uses the research evidence of at-least-once redelivery after 5 minutes to explain the partial or duplicate object",
+        "Keeps Q-03 in status discussing; nothing is marked decided",
+        "Ends by returning to the Q-03 decision with a recommendation, not by asking Q-04"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "new-decision-is-queued",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "Q-03: go with your idempotent-write recommendation. That also makes me wonder whether we need to cap how many exports a customer can run at once.",
+      "expected_output": "Settles Q-03, updates the plan, adds a separate concurrency-cap question, announces the new total, and records the queue change.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md",
+        "evals/files/docs/research/order-export-codebase.md"
+      ],
+      "expectations": [
+        "Marks Q-03 decided as an explicitly accepted recommendation, with rationale, in the review record",
+        "Updates the affected plan sections (design, reliability, steps, and any affected acceptance scenario) and labels the decision as the user's",
+        "Adds the concurrency cap as a new question with a new stable ID instead of discussing it inside Q-03",
+        "Announces in one line that N increased to 7 and why",
+        "Records the addition under Queue changes",
+        "The next question shown is numbered 4/7"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "defer-stays-visible",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "Q-03 needs input from the platform team. Park it and keep going.",
+      "expected_output": "Marks Q-03 deferred without resolving it, keeps it in the count, records why, and moves to Q-04.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md"
+      ],
+      "expectations": [
+        "Sets Q-03 to deferred in the record, with the reason and what it blocks",
+        "N stays 6; the deferred question is not counted as resolved",
+        "The next question is 'Question 4/6 — Data' about stable paging",
+        "Does not write a decision for Q-03 into the plan; keeps the redelivery concern listed as open"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "ambiguous-reply-is-not-a-decision",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "hm, ok. next",
+      "expected_output": "Does not mark Q-03 decided; asks in one line whether to accept the recommendation or defer it.",
+      "files": [
+        "evals/files/docs/plans/order-export-review.md"
+      ],
+      "expectations": [
+        "Does not mark Q-03 decided or edit the plan as if it were",
+        "Asks briefly whether the user accepts the recommendation or wants Q-03 deferred",
+        "Does not invent a decision or rationale"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "resume-from-record",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "New session. Let's continue the order export plan review.",
+      "expected_output": "Reads the review record and plan, reports the position and prior decisions, and continues with Question 3/6 instead of restarting.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md",
+        "evals/files/docs/research/order-export-codebase.md"
+      ],
+      "expectations": [
+        "Finds and reads docs/plans/order-export-review.md before asking anything",
+        "Briefly reports the decided questions Q-01 and Q-02 and the current position",
+        "Continues with 'Question 3/6 — Failure modes' and does not re-ask Q-01 or Q-02",
+        "Notices if the plan text disagrees with recorded decisions (for example AC-02 still says all orders while Q-01 decided 24 months) and reconciles it"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "completion-keeps-authorization-separate",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "Assume Q-03 to Q-05 are decided as you recommended and I agreed AC-01..AC-03 as revised in Q-06. Looks good, wrap up the review.",
+      "expected_output": "Marks the review complete and summarizes decisions, deferred items, assumptions, test agreement, authorization not given, readiness, and the next prompt, without implementing.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md"
+      ],
+      "expectations": [
+        "Sets the record's review status to complete",
+        "Summarizes decisions, separating the user's own decisions from accepted recommendations",
+        "Records test agreement as agreed for the AC scenarios",
+        "States implementation authorization as not given; 'looks good' is not treated as authorization",
+        "Gives a readiness verdict and the next prompt, such as the implementation handoff",
+        "Writes no code and runs no implementation"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "authorization-mid-review-hands-off",
+      "tags": [
+        "with-record"
+      ],
+      "prompt": "Actually, just implement it now.",
+      "expected_output": "Records the authorization and its scope, asks whether to defer or finish the open questions, and hands off instead of coding inside the review.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md"
+      ],
+      "expectations": [
+        "Records implementation authorization as given, with scope and date, in the record and plan",
+        "Lists the questions still pending or discussing and asks whether to defer them or finish them first",
+        "Hands off through plan-execution or the handoff prompt rather than writing code inside the review"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "annotations-stay-in-authoring-mode",
+      "prompt": "I added a few notes to docs/plans/order-export.md. Address all the notes and update the document. Don't implement yet.",
+      "expected_output": "Revises the plan from the annotations in authoring mode without starting an interactive question queue.",
+      "files": [
+        "evals/files/docs/plans/order-export.md"
+      ],
+      "expectations": [
+        "Revises the plan coherently from the notes",
+        "Does not start a question queue or show 'Question M/N'",
+        "Does not create a review record",
+        "Writes no code"
+      ],
+      "setup": "Before running, add an inline note to the plan under Assumptions, for example '> NOTE: a retry must never produce a second file for the same export.'"
+    }
+  ]
+}

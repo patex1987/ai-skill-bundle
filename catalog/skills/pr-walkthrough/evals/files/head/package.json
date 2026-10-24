@@ -1,0 +1,1 @@
+{ "name": "checkout-sample", "private": true, "scripts": { "test": "vitest run" } }

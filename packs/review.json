@@ -1,7 +1,8 @@
 {
-  "description": "Security review skill plus review agents for security, system design, performance, and maintainability.",
+  "description": "Security review and guided PR walkthrough skills, plus review agents for security, system design, performance, and maintainability.",
   "skills": [
-    "appsec-review"
+    "appsec-review",
+    "pr-walkthrough"
   ],
   "agents": [
     "security-practices",

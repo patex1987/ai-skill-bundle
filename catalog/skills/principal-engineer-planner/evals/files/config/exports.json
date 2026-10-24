@@ -1,0 +1,4 @@
+{
+  "maxRowsPerExport": 100000,
+  "downloadLinkTtlMinutes": 60
+}

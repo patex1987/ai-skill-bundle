@@ -1,6 +1,6 @@
 ---
 name: principal-engineer-planner
-description: Turn a feature, refactor, integration, migration, infrastructure change, or ambiguous engineering task into a reviewable implementation plan: requirements, repository evidence, design alternatives, risks, agreed acceptance tests, ordered steps with suggested model tiers, and rollout. Use before non-trivial implementation; not for obvious single-file edits.
+description: Turn a feature, refactor, integration, migration, infrastructure change, or ambiguous engineering task into a reviewable implementation plan: requirements, repository evidence, design alternatives, risks, agreed acceptance tests, ordered steps with suggested model tiers, and rollout. Also reviews an existing plan interactively: one question at a time with tradeoffs and a recommendation, progress tracking, and a resumable review record. Use before non-trivial implementation, or to review, interrogate, or walk through a plan; not for obvious single-file edits.
 license: MIT-0
 metadata:
   routing-tier: deep
@@ -12,6 +12,20 @@ metadata:
 You are a principal engineer and technical design partner. Turn unclear engineering work into a clear, reviewable, implementation-ready plan with acceptance tests agreed before implementation.
 
 Stay in planning mode. Do not write production code unless the user explicitly asks you to leave planning mode.
+
+## Modes
+
+- **Plan authoring** (default): write or revise a plan with the workflow below.
+- **Interactive plan review**: the user wants to review, interrogate, understand, or
+  walk through an existing plan with you, or resume such a review. Read
+  [references/plan-review.md](references/plan-review.md) and follow it. It reuses
+  this skill's hard rules, plan structure, and validation, and adds a question
+  queue with progress (`Question M/N — <topic>`), one question at a time, and a review
+  record linked from the plan so another session can resume.
+
+Annotation requests ("I added notes, address them") stay in authoring mode
+(section 8). Switch to review mode when the user wants a guided discussion, and
+offer it when a plan has many open questions that need the user's decisions.
 
 ## Core Behavior
 
@@ -134,6 +148,8 @@ Use this structure:
 
 Brief description of the change and the recommended approach.
 
+Review record: <link, if an interactive review exists>
+
 ## 2. Goals
 
 - ...
@@ -151,6 +167,10 @@ Describe the relevant existing architecture, behavior, files, APIs, data flows, 
 ### Confirmed Requirements
 
 - ...
+
+### Decisions
+
+- <decision> — Decision (user, <date or Q-ID>)
 
 ### Assumptions
 
@@ -296,6 +316,8 @@ Before finishing, review the plan against this checklist:
 
 Read all user annotations and revise the full affected design, scenarios, and checklist coherently. Record unresolved questions; do not treat an annotation request as permission to code. Keep the plan a current proposal rather than an accumulation of contradictory drafts.
 
+For a guided, question-by-question review of the plan, use interactive plan review (see Modes).
+
 Record implementation authorization separately from test agreement. Authorization already given in the session remains valid within its scope; do not require a new ritual or phrase. If implementation is explicitly deferred, end with the concrete plan ready for review. Once execution is authorized, hand off to `plan-execution` if available. Final `plan-validation` checks completion against the agreed criteria.
 
 ## Question Style
@@ -344,3 +366,6 @@ At the end, summarize:
 - key tradeoffs
 - open questions
 - next command or prompt to move into implementation
+
+At the end of an interactive review, use the completion summary in
+[references/plan-review.md](references/plan-review.md#finish-the-review) instead.

@@ -229,3 +229,138 @@ It also needed to complement scanners such as Trivy, Semgrep, Snyk, and Checkov.
   protected samples. Scanner flag forms were checked against current
   documentation from memory and secondary sources, so confirm them with
   `--help` on the installed versions.
+
+## Follow-up: interactive plan review in `principal-engineer-planner`
+
+The user asked for a guided, question-by-question plan review inside the existing
+planner skill rather than a new skill.
+
+- **Modes section in `SKILL.md`:** plan authoring (default) and interactive plan
+  review. Annotation requests stay in authoring mode. The description now names
+  the review trigger.
+- **`references/plan-review.md`:**
+  - a question queue, built after reading the plan and research, grouped by topic,
+    ordered by dependency, and skipping questions the repository already answers
+  - one question at a time as `Question M/N — <topic>` with context, tradeoffs, and
+    a recommendation; stable `Q-NN` IDs; four statuses (`pending`, `discussing`,
+    `decided`, `deferred`)
+  - only an explicit user decision settles a question; deferred questions stay
+    counted and unresolved
+  - plan updates after each decision, with labels separating user decisions,
+    recommendations, assumptions, and evidence
+  - test agreement and implementation authorization tracked separately
+  - a resumable review record at `docs/plans/<plan>-review.md`, linked from the plan
+- **Plan template:** a `Review record:` line and a `### Decisions` list.
+- **Validation examples:** `evals/evals.json` (skill-creator format) with nine
+  cases and fixtures under `evals/files/`. They cover:
+  - starting a review
+  - clarifications that do not advance `M`
+  - adding a question
+  - deferring a question
+  - ambiguous replies
+  - resuming a review
+  - completion
+  - authorization during a review
+  - the boundary with annotation requests
+- **`validate`:** checks `evals/evals.json` when present (skill name, unique ids,
+  prompts, expectations, files inside the skill). Tests: 43 pass (1 new).
+- **Tradeoff:** evals ship with the skill into consuming repositories' skill
+  folders. Agents do not load them unless asked.
+- **Not done:** the eval cases have not been run against a model yet.
+
+## Follow-up: `pr-walkthrough` skill and reviewer agent rewrite
+
+The user wanted a review that does not overwhelm the reader:
+
+- big picture first
+- topics in the order they build on each other
+- a `M/N` counter
+- a plain-language explanation per topic
+- concrete files, lines, and snippets
+
+No published skill did all of this (surveyed 2026-10-24). The closest was
+xpepper's `guided-flow-review`.
+
+- **New skill `catalog/skills/pr-walkthrough`** (`deep/medium`, `review` pack):
+  - an overview with a map and a topic list
+  - topics grouped by idea and ordered building blocks → core behavior →
+    integration → supporting → mechanical
+  - `Topic M/N — <name>` with "In plain terms", `path:line` bullets, and at most
+    two short snippets
+  - length budgets, one topic per message, and a gate after each topic
+  - review and explain modes
+  - findings tagged `blocking`, `should`, `nit`, or `question` and routed by the
+    user, with evidence checks and a do-not-flag list
+  - a resumable record
+  - posting only after the user approves the exact text
+- **Sources:** the text is original. Ideas came from `guided-flow-review` (MIT)
+  and others, listed in `references/sources.md`.
+- **Validation examples:** `evals/evals.json` has nine cases, with a base and
+  head fixture of a coupon change. The change has two planted defects: a
+  negative total, and a test whose expected value comes from the production
+  constant it checks.
+- **Reviewer agents rewritten** (`performance-scalability`,
+  `readability-maintainability`, `system-design-scalability`, and the voice and
+  report of `security-practices`):
+  - Before, each agent was a list of keywords plus "findings first". Each now has:
+    - a point of view
+    - a domain-specific method
+    - a bar for what is worth flagging (adapted from OpenAI Codex's review
+      rubric: introduced by the change, concrete trigger, the author would fix it)
+    - a do-not-flag list (from Anthropic's code-review command:
+      linter-catchable, pre-existing, taste)
+    - a short report: verdict line, tagged findings with one-paragraph
+      scenarios, confidence, code excerpts of at most three lines, and what was
+      checked
+  - The tags match `pr-walkthrough`, so agent results drop into a walkthrough
+    topic.
+  - Inspiration surveyed: Anthropic `claude-plugins-official` (code-review,
+    pr-review-toolkit) at `5826794`, OpenAI `codex` review rubric at `970111f`,
+    VoltAgent `awesome-claude-code-subagents` at `408d3c9`, and wshobson
+    `agents` at `0874a27`. The last two are mostly keyword lists, so they served
+    as a counterexample.
+- **Access:** the three non-security reviewers changed from `read-only` to
+  `execute`, so that they can run `git diff` and `log` for a change range, as
+  `security-practices` already does. Their bodies allow read-only git and cheap
+  existing checks only. One test now uses `scout` as its read-only example.
+- Tests: 43 pass. Pilot render with `core` and `review`: `--check` reports current.
+- **Not done:** neither the eval cases nor the rewritten agents have been run
+  against a model yet.
+
+## Follow-up: `typescript-style` skill
+
+- **Problem:** in a consuming repository, an agent wrote TypeScript with no
+  blank lines, deeply nested calls, and no doc comments. That code passed both
+  Prettier and ESLint. Prettier keeps blank lines but never adds them, and the
+  repository's padding rules did not cover imports or top-level declarations.
+  No catalog skill said anything about layout or doc comments.
+- **Survey (2026-10-24):** six published TypeScript style and doc skills were
+  read in full: pproenca `ts-google` and `typescript`, thenordicone
+  `typescript`, perdolique `typescript-conventions`, claude-dev-suite
+  `jsdoc-tsdoc`, and kentoshimizu `typescript-style-guide`. None covered layout.
+  One covered doc comments, but it required `@example` and `@throws`
+  everywhere. Ideas were adapted with provenance in `references/sources.md`; no
+  text was copied.
+- **New skill `catalog/skills/typescript-style`** (`balanced/medium`,
+  `typescript` pack, so `aws-cdk`, `nestjs`, `react`, and `github-actions`
+  pull it in):
+  - The order of authority is: repository config, then surrounding code, then
+    the skill. Formatter and linter fixers and checks run before handing back.
+    Untouched files are not reformatted.
+  - Explicit blank-line rules, named intermediates, data-flow ordering, guard
+    clauses, named constants with units, and a short list of idioms.
+  - TSDoc on exports, describing what types cannot (units, side effects, errors,
+    invariants), with no types in tags.
+  - `references/lint-recipe.md`: `@stylistic` padding and class-member rules,
+    `curly`, `one-var`, `jsdoc/require-jsdoc` (with `publicOnly` and
+    `enableFixer: false`, so `--fix` does not insert empty stubs), `no-types`,
+    `check-param-names`, and `tsdoc/syntax`. The recipe was tested as written
+    with ESLint 9.39, `@stylistic` 5.10, `eslint-plugin-jsdoc` 63.3, and
+    `eslint-plugin-tsdoc` 0.5 against a dense sample. `--fix` cleared every
+    layout error.
+  - 5 eval cases with fixtures.
+- `typescript` now points to `typescript-style` for layout and comments.
+- **Not done:**
+  - The evals have not been run against a model.
+  - The skill is not installed in any consuming repository; that is a separate
+    task there.
