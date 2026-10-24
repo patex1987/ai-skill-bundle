@@ -27,7 +27,7 @@ import render  # noqa: E402  (shared frontmatter parser and constants)
 
 KINDS = ('skills', 'agents', 'rules')
 SUPPORT_FILES = {'render.py': ROOT / 'scripts' / 'render.py', 'routing.json': ROOT / 'routing' / 'tiers.json'}
-METADATA_KEYS = {'routing-tier', 'routing-effort', 'invocation', 'context', 'agent', 'tags', 'max-turns'}
+METADATA_KEYS = {'routing-tier', 'routing-effort', 'invocation', 'context', 'agent', 'tags', 'max-turns', 'skills'}
 SKILL_FRONT_KEYS = {'name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools'}
 AGENT_FRONT_KEYS = {'name', 'description', 'access', 'metadata'}
 RULE_FRONT_KEYS = {'name', 'description', 'always-apply', 'paths', 'metadata'}
@@ -124,7 +124,27 @@ def selection(manifest, packs, entities):
     for key in chosen:
         if key not in entities:
             raise BundleError(f'unknown catalog entity {key[0]}/{key[1]}')
+    for (kind, name) in chosen:
+        if kind != 'agents':
+            continue
+        for skill in agent_skills(entities[(kind, name)]):
+            if ('skills', skill) not in chosen:
+                raise BundleError(f'agent {name!r} uses skill {skill!r}, which is not selected; '
+                                  f'add it under "skills": {{"add": [...]}} in bundle.json or remove the agent')
     return pack_order, chosen
+
+
+def agent_skills(path):
+    """Skills an agent declares in metadata.skills (it reads or preloads them at start)."""
+    try:
+        front, _ = render.parse_frontmatter(path.read_text(), str(path))
+    except (render.RenderError, OSError):
+        return []  # reported by validate_catalog
+    meta = front.get('metadata', {})
+    skills = meta.get('skills', []) if isinstance(meta, dict) else []
+    if isinstance(skills, str):
+        return [skills]
+    return [s for s in skills if isinstance(s, str)] if isinstance(skills, list) else []
 
 
 # --- Validation ------------------------------------------------------------------
@@ -171,6 +191,16 @@ def validate_catalog():
             problems.append(f'{where}: routing-effort must be one of {render.EFFORTS}')
         if meta.get('invocation') not in (None, 'auto', 'explicit'):
             problems.append(f'{where}: invocation must be auto or explicit')
+        if 'skills' in meta:
+            skills = meta['skills']
+            if kind != 'agents':
+                problems.append(f'{where}: metadata.skills is only supported on agents')
+            elif not isinstance(skills, list) or not all(isinstance(s, str) for s in skills):
+                problems.append(f'{where}: metadata.skills must be a list of skill names')
+            else:
+                for skill in skills:
+                    if ('skills', skill) not in entities:
+                        problems.append(f'{where}: metadata.skills names unknown skill {skill!r}')
         if kind == 'skills':
             if body.count('\n') > 500:
                 problems.append(f'{where}: SKILL.md body exceeds 500 lines; move detail into references/')
@@ -198,6 +228,14 @@ def validate_catalog():
                 for entity in pack.get(kind, []):
                     if (kind, entity) not in entities:
                         problems.append(f'packs/{name}.json: unknown {kind} entity {entity!r}')
+        for name in packs:
+            members = {(k, e) for p in resolve_packs([name], packs) for k in KINDS for e in packs[p].get(k, [])}
+            for kind, entity in sorted(members):
+                if kind == 'agents' and (kind, entity) in entities:
+                    for skill in agent_skills(entities[(kind, entity)]):
+                        if ('skills', skill) not in members:
+                            problems.append(f'packs/{name}.json: agent {entity!r} uses skill {skill!r}, '
+                                            'which the pack does not include')
         referenced = {(k, e) for p in packs.values() for k in KINDS for e in p.get(k, [])}
         for key in sorted(set(entities) - referenced):
             problems.append(f'catalog/{key[0]}/{key[1]}: not referenced by any pack')

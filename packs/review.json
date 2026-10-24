@@ -1,5 +1,8 @@
 {
-  "description": "Read-only review agents for security, system design, performance, and maintainability.",
+  "description": "Security review skill plus review agents for security, system design, performance, and maintainability.",
+  "skills": [
+    "appsec-review"
+  ],
   "agents": [
     "security-practices",
     "system-design-scalability",

@@ -86,6 +86,19 @@ class CatalogValidation(Workspace):
         agent.write_text(agent.read_text().replace('routing-effort: low', 'routing-effort: turbo'))
         self.assertIn('routing-effort must be one of', self.bundle('validate').stdout)
 
+    def test_agent_skill_dependencies_are_checked(self):
+        packs = self.catalog / 'packs'
+        data = json.loads((packs / 'review.json').read_text())
+        data.pop('skills')
+        (packs / 'review.json').write_text(json.dumps(data))
+        (packs / 'security-extra.json').write_text(json.dumps({'description': 'x', 'skills': ['appsec-review']}))
+        result = self.bundle('validate')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agent 'security-practices' uses skill 'appsec-review'", result.stdout)
+        agent = self.catalog / 'catalog/agents/scout.md'
+        agent.write_text(agent.read_text().replace('metadata:\n', 'metadata:\n  skills: [no-such-skill]\n', 1))
+        self.assertIn("names unknown skill 'no-such-skill'", self.bundle('validate').stdout)
+
     def test_pack_cycles_are_rejected(self):
         packs = self.catalog / 'packs'
         data = json.loads((packs / 'typescript.json').read_text())
@@ -221,7 +234,8 @@ class Rendering(Workspace):
         claude = self.read('.claude/agents/security-practices.md')
         self.assertIn('model: opus', claude)
         self.assertIn('effort: high', claude)
-        self.assertIn('tools: "Read, Grep, Glob"', claude)
+        self.assertIn('tools: "Read, Grep, Glob, Bash"', claude, 'needs git to resolve a change range')
+        self.assertIn('tools: "Read, Grep, Glob"\n', self.read('.claude/agents/system-design-scalability.md'))
         self.assertIn('model: haiku', self.read('.claude/agents/scout.md'))
         codex = self.read('.codex/agents/scout.toml')
         self.assertNotIn('model =', codex, 'unmapped tiers inherit the session model')
@@ -281,6 +295,30 @@ class Rendering(Workspace):
         self.render()
         claude, _ = render.parse_frontmatter(self.read('.claude/skills/programming-kb/SKILL.md'), 'x')
         self.assertNotIn('disable-model-invocation', claude)
+
+    def test_agent_skills_are_preloaded_in_claude_and_read_first_elsewhere(self):
+        self.render()
+        claude, body = render.parse_frontmatter(self.read('.claude/agents/security-practices.md'), 'x')
+        self.assertEqual(claude['skills'], ['appsec-review'])
+        self.assertNotIn('Before starting, read', body)
+        note = '`.agents/skills/appsec-review/SKILL.md`'
+        for path in ('.codex/agents/security-practices.toml', '.cursor/agents/security-practices.md',
+                     '.gemini/agents/security-practices.md'):
+            self.assertIn(note, self.read(path), path)
+        self.assertNotIn('skills', render.parse_frontmatter(self.read('.claude/agents/scout.md'), 'x')[0])
+
+    def test_explicit_only_agent_skill_is_read_instead_of_preloaded(self):
+        self.write_manifest(packs=['core', 'review', 'knowledge-base', 'teaching'],
+                            invocation={'appsec-review': 'explicit'})
+        self.render()
+        claude, body = render.parse_frontmatter(self.read('.claude/agents/security-practices.md'), 'x')
+        self.assertNotIn('skills', claude, 'Claude cannot preload disable-model-invocation skills')
+        self.assertIn('`.claude/skills/appsec-review/SKILL.md`', body)
+
+    def test_install_refuses_agent_without_its_skill(self):
+        self.write_manifest(packs=['core', 'review'], skills={'remove': ['appsec-review']})
+        result = self.install(expect=1)
+        self.assertIn("uses skill 'appsec-review'", result.stdout + result.stderr)
 
     def test_overlay_is_referenced_and_unknown_overlays_fail(self):
         overlays = self.repo / '.ai/overlays'

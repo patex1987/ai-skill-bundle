@@ -73,6 +73,7 @@ upgrades and local drift.
 | agents | `.claude/agents/*.md` (tools, model, effort) | `.codex/agents/*.toml` (model, effort) | `.cursor/agents/*.md` (readonly, model) | `.gemini/agents/*.md` (tools, model) |
 | rules | `.claude/rules/*.md` (`paths`) | via `AGENTS.md` | `.cursor/rules/*.mdc` | via `AGENTS.md` |
 | explicit-only skills | `disable-model-invocation` | `allow_implicit_invocation: false` | `disable-model-invocation` | note in skill body |
+| skills an agent uses (`metadata.skills`) | `skills:` preload (a read-first note for explicit-only skills) | read-first note in instructions | read-first note | read-first note |
 
 Field names were checked against vendor documentation on 2026-10-23. See
 [`catalog/skills/model-routing/references/tool-mechanics.md`](catalog/skills/model-routing/references/tool-mechanics.md)
@@ -129,7 +130,10 @@ python3 -m unittest discover -s tests -v      # installer and renderer behaviour
 - Canonical frontmatter allows only portable fields (`name`, `description`,
   `metadata`, …). Tool-specific fields are generated. Allowed `metadata` keys:
   `routing-tier` (required), `routing-effort`, `invocation`, `context`, `agent`,
-  `tags`, `max-turns`.
+  `tags`, `max-turns`, and `skills` (agents only: skills the agent applies, such as
+  `security-practices` → `appsec-review`). Every pack that selects such an agent,
+  including its `requires`, must select those skills, and `install` refuses a
+  manifest that drops one.
 - Add a new entity to at least one pack. Keep `SKILL.md` under 500 lines and move
   detail into `references/` (progressive disclosure).
 - Changing an entity changes its digest. Repositories pick it up on their next
@@ -165,6 +169,25 @@ Do this one repository at a time, in its own issue, branch, and pull request.
 - `imports/` is a local, unversioned snapshot of the platform repositories' `.ai`
   folders and the previous composer, kept for writing overlays. The source of
   truth for that content is the platform repositories themselves.
+
+## Alternatives to evaluate
+
+The catalog uses the standard `SKILL.md` layout, so it stays portable. The
+installer and renderer (`aibundle.py`, `render.py`) could be replaced by an
+existing tool. Each one below was surveyed from its documentation on 2026-10-24
+and has not been tried here yet:
+
+| Option | What it covers | Gap to check |
+|---|---|---|
+| [Microsoft APM](https://github.com/microsoft/apm) | `apm.yml` manifest, `apm.lock.yaml` with content hashes, installs skills, instructions, plugins, and MCP servers into Claude, Codex, Cursor, Gemini, Copilot, and others | Tier/effort routing, agents with skill links, overlays |
+| [Vercel `skills` CLI](https://vercel.com/docs/agent-resources/skills) ([skills.sh](https://skills.sh)) | `npx skills add owner/repo --skill <name>` installs single skills into many agents' skill folders | Skills only: no agents, routing, or overlays |
+| [Claude Code plugins and marketplaces](https://code.claude.com/docs/en/discover-plugins) | Plugins bundle skills, agents, hooks, and MCP servers; a marketplace is a JSON catalog in a git repo | Mainly Claude Code; other tools still need rendering |
+| [rulesync](https://github.com/dyoshikawa/rulesync) | Generates rules, commands, subagents, skills, and MCP config for many tools from one source | Model routing, overlays, ownership rules |
+| [ai-rules-sync](https://github.com/lbb00/ai-rules-sync) | Syncs rules, skills, commands, and subagents across tools | Same as rulesync |
+
+Suggested first trial: point APM at this catalog from a scratch repository and
+compare its output with `render.py`. Before writing more renderer code for a
+vendor change, check whether one of these tools already handles it.
 
 ## License
 

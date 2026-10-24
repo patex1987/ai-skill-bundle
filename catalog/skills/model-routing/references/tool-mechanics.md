@@ -16,6 +16,12 @@ an error, so a misspelled field fails quietly.
   active. `model` applies to the current turn only. With `context: fork`, the skill
   runs in a subagent and `model` sets that subagent's model. That is the only way a
   skill gets its own model without changing the main session.
+- **Subagent skills:** a subagent's `skills` field preloads the full content of the
+  listed skills at startup. It does not need `Skill` in `tools`, and it cannot preload
+  skills that set `disable-model-invocation`. Without the field, a subagent discovers
+  skills only through the `Skill` tool, and read-only agents here do not get it. So
+  `render.py` emits `skills` for an agent's `metadata.skills`, and falls back to a
+  read-first instruction for explicit-only skills (checked 2026-10-23).
 - **Dynamic adjustment:** when the lead agent spawns a subagent, the spawn
   call can pass `model` (and, where the tool exposes it, `effort`). That value
   overrides the agent file for this one invocation, so it is how you escalate or

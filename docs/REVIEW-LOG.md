@@ -182,3 +182,50 @@ still lists it fails with an explicit message rather than being silently ignored
 `.roo/rules/*` and `.roo/skills/*` are legacy outputs: the first render after
 upgrading removes any listed in the previous manifest. Cline was not added, and its
 instruction and skill locations have not been verified.
+
+## Follow-up: `appsec-review` skill and agent skill links (renderer 2.2.0)
+
+The user asked for one security skill covering three requests:
+
+- guidance on a security topic
+- a review of the current PR or branch that reports only newly added risk
+- a full audit
+
+It also needed to complement scanners such as Trivy, Semgrep, Snyk, and Checkov.
+
+- **New skill `catalog/skills/appsec-review`** (`deep/high`, in the `review` pack):
+  - It has three modes and one shared evidence gate (`confirmed`, `likely`,
+    `needs-validation` without severity, `rejected`).
+  - It has an explicit do-not-flag list, change-review triage by risk, and a
+    full-audit workflow with a coverage ledger, coverage critic, and
+    independent verifiers.
+  - It has scanner guidance with execution states and data-egress cautions.
+- **Sources:** the text is original. It adapts ideas from:
+  - Cloudflare's `security-audit-skill` and its AI code review post
+  - Trail of Bits (ideas only, because the CC-BY-SA licence is incompatible
+    with MIT-0)
+  - Sentry, Anthropic's `claude-code-security-review`, and OpenAI's security
+    skills
+  - the user's knowledge base notes
+
+  Pinned revisions are listed in `references/sources.md`.
+- **Name:** `appsec-review`, not `security-review`, because Claude Code ships a
+  built-in `/security-review` command.
+- **`security-practices` agent:**
+  - Access changed from `read-only` to `execute`. Change review needs `git
+    diff` and `log`, and Claude read-only agents get only Read, Grep, and Glob.
+  - The body allows read-only git and preinstalled scanners only.
+  - The agent now has reviewer, unit-reviewer, and verifier roles.
+- **New `metadata.skills` for agents:**
+  - Claude renders it as the subagent `skills` preload. Explicit-only skills
+    fall back to a read-first note, because Claude cannot preload them.
+  - Codex, Cursor, and Gemini get a read-first note pointing at
+    `.agents/skills/<name>/SKILL.md`.
+  - `validate` checks that packs carry the skills their agents use, and
+    `install` refuses a manifest that removes one.
+- Tests: 42 pass (5 new or changed). Pilot render on a scratch repository with
+  `core` and `review`: `--check` reports current.
+- **Not done:** the skill has not been evaluated on seeded vulnerable and
+  protected samples. Scanner flag forms were checked against current
+  documentation from memory and secondary sources, so confirm them with
+  `--help` on the installed versions.
