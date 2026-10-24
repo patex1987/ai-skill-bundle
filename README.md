@@ -118,6 +118,12 @@ lowers effort for that work while the skill is active.
 
 Design rationale and limits: [docs/model-routing.md](docs/model-routing.md).
 
+## Working with the skills
+
+[docs/workflow.md](docs/workflow.md) walks one feature through the workflow
+skills: research, plan, annotate the plan until it is right, then implement,
+validate, and review.
+
 ## Maintaining the catalog
 
 ```sh
