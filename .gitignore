@@ -5,3 +5,6 @@ build/
 # Local-only snapshot of the platform repositories' .ai folders (migration
 # scaffolding). Its content is already versioned in those repositories.
 imports/
+
+# Cargo build output from eval fixtures (editors build them automatically)
+target/

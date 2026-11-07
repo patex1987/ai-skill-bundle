@@ -1,0 +1,85 @@
+{
+  "skill_name": "rust-style",
+  "evals": [
+    {
+      "id": 1,
+      "name": "restyle-green-but-dense",
+      "prompt": "Clean up src/holds.rs so it reads well. cargo fmt and clippy are already happy with it. Keep the behaviour the same unless something is a bug.",
+      "expected_output": "Restructures the module with blank lines, import groups, named constants as Durations, a typed error enum, guard clauses, an enum instead of the bool, named fields instead of the tuple, doc comments with # Errors, and no unwrap on runtime paths; flags the empty-input panic as a bug; runs cargo fmt, clippy, and tests.",
+      "files": [
+        "evals/files/Cargo.toml",
+        "evals/files/src/main.rs",
+        "evals/files/src/holds.rs"
+      ],
+      "expectations": [
+        "Says that passing rustfmt and Clippy does not cover blank lines, naming, or documentation, and restyles anyway",
+        "Adds a //! module comment and blank lines after the use block, between items, between methods, and between logical steps",
+        "Replaces the glob import use std::sync::* with explicit imports",
+        "Renames data, value, and string to role names, and replaces the (u32, bool) tuple field with named fields or removes it",
+        "Replaces the vip bool parameter with an enum (or explains why it keeps it and comments call sites)",
+        "Replaces Result<String, String> with an error enum that implements Display and Error, with distinct variants",
+        "Moves the error case to a guard clause so the happy path is not nested inside if/else",
+        "Replaces 900 and 300 with named Duration constants or names that carry the unit",
+        "Replaces the + string concatenation with format!",
+        "Changes get to take &str, uses if let or match instead of is_some plus unwrap, and replaces #[allow(dead_code)] with #[expect(..., reason = ...)] or removes the need",
+        "Replaces for_each with push into an outside Vec by a collect or a for loop",
+        "Replaces runtime unwrap calls on the lock and clock with error handling or expect messages that state the invariant",
+        "Identifies that place(\"\", 0, ..) panics on value[0] and reports or fixes it as a bug, not a style issue",
+        "Runs or asks to run cargo fmt, cargo clippy --all-targets, and cargo test"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "review-green-module",
+      "prompt": "Review src/holds.rs as part of a PR. CI is green. Give me the findings.",
+      "expected_output": "Groups findings by severity: the empty-input panic as a bug, should findings for stringly errors, type-word names, the bool and tuple, runtime unwraps, and missing docs, and one layout nit per file naming the tool setting; does not comment line by line.",
+      "files": [
+        "evals/files/src/holds.rs"
+      ],
+      "expectations": [
+        "Reports the value[0] panic for zero expected seats and empty input as a bug with path:line, separately from style",
+        "Raises Result<String, String> with the message \"bad\" as a should finding",
+        "Raises the type-word names (data, value, string) as one should finding that groups the occurrences",
+        "Raises the vip bool parameter and the (u32, bool) tuple as should findings because call sites cannot show their meaning",
+        "Raises unwrap on the Mutex lock and SystemTime as a should finding, noting that a poisoned lock would crash request handling",
+        "Raises the one-word /// place doc comment and the missing docs on Hold and HoldStore",
+        "Reports missing blank lines and the glob import as one nit for the file, and names a rustfmt or Clippy setting or states that no tool enforces blank lines",
+        "Says green CI is not evidence of naming, documentation, or structure"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "respect-repo-config",
+      "prompt": "Add a release_expired method to src/holds.rs that removes holds past their expiry and returns how many it removed. Our team uses thiserror for errors and our rustfmt.toml sets max_width = 120.",
+      "expected_output": "Adds a documented method that follows the stated repository conventions, without restyling the rest of the file.",
+      "files": [
+        "evals/files/Cargo.toml",
+        "evals/files/src/main.rs",
+        "evals/files/src/holds.rs"
+      ],
+      "expectations": [
+        "Follows the stated max_width = 120 and thiserror conventions over this skill's defaults, and does not add a dependency without saying so",
+        "Adds a /// doc comment whose first line summarises the behaviour and states that the count is of removed holds",
+        "Uses retain or a clear loop rather than for_each with outside mutation",
+        "Does not reformat or restyle the untouched code in the same change, and offers the wider cleanup separately",
+        "Separates logical steps in the new method with blank lines"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "propose-lint-config",
+      "prompt": "Our agent keeps writing Rust with unwraps everywhere, no doc comments, and #[allow] attributes with no explanation. It's a binary crate (an Axum service). What lint config should we add?",
+      "expected_output": "Proposes the tested baseline [lints] table and clippy.toml, explains which lints only see exported items, and recommends phasing in missing_docs_in_private_items per module.",
+      "files": [],
+      "expectations": [
+        "Proposes a [lints.clippy] table with unwrap_used and allow_attributes_without_reason, plus allow-unwrap-in-tests = true in clippy.toml",
+        "Explains that missing_docs, missing_errors_doc, and missing_panics_doc only check exported items, so they do little in a binary crate",
+        "Recommends clippy::missing_docs_in_private_items introduced module by module (or warns that it is noisy crate-wide)",
+        "Does not recommend imports_granularity or group_imports on stable rustfmt",
+        "Recommends #[expect(lint, reason = ...)] for suppressions",
+        "States that lints cannot catch naming, structure, or doc comment quality",
+        "Does not edit Cargo.toml without agreement"
+      ]
+    }
+  ]
+}

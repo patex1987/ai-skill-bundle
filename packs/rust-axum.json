@@ -1,10 +1,11 @@
 {
-  "description": "Rust Axum/Tokio services and Rust testing.",
+  "description": "Rust Axum/Tokio services, Rust code style and doc comments, and Rust testing.",
   "requires": [
     "architecture"
   ],
   "skills": [
     "rust-axum-service",
+    "rust-style",
     "rust-testing"
   ]
 }

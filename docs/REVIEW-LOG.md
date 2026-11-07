@@ -427,3 +427,47 @@ Plan: `docs/plans/typescript-naming-cohesion-validation.md`.
   Green checks are not evidence for naming or cohesion. These findings are
   tagged `should`.
 - **Not done:** the evals have not been run against a model.
+
+## Follow-up: `rust-style` skill
+
+- **Problem:** the catalog had Rust service and testing skills, but nothing on
+  layout, naming, or doc comments. Rust in a consuming service passed
+  `cargo fmt` and `clippy -D warnings` yet had dense function bodies, few doc
+  comments on internal items, and `Result<_, String>`-style shortcuts in places.
+- **Sources (read 2026-11-07):** the official Rust Style Guide and Google's Rust
+  Style Guide. Google rules specific to Chromium, Android, Fuchsia, Bazel or GN,
+  C++ interop, and monorepo policy were left out; the list and the deliberate
+  differences (`Arc` for Axum state, docs by crate type, explicit blank-line and
+  import-group rules, `anyhow` at the edges only) are in
+  `references/sources.md`. No text was copied.
+- **New skill `catalog/skills/rust-style`** (`balanced/medium`, `rust-axum`
+  pack):
+  - Order of authority, then sections on layout, files and imports, naming,
+    readable structure, errors and panics, types and traits, attributes, and
+    doc comments, with a hand-back checklist and review severities.
+  - `references/doc-comments.md`: rustdoc content and sections, by item kind.
+  - `references/lint-recipe.md`: `rustfmt.toml`, a baseline `[lints]` table,
+    `clippy.toml`, library-only doc lints, and a module-by-module path to
+    `missing_docs_in_private_items` for binary crates.
+  - 4 eval cases with a fixture (`evals/files`) that passes `cargo fmt --check`,
+    `clippy -D warnings`, and its test, and hides an index panic on empty input.
+- **Verified on 2026-11-07** (Rust 1.96.1, rustfmt 1.9.0, Clippy 0.1.96):
+  - `imports_granularity` and `group_imports` are ignored with a warning on
+    stable, so the skill sets import groups by hand.
+  - `missing_docs`, `missing_errors_doc`, and `missing_panics_doc` see exported
+    items only; `check-private-items = true` makes `missing_panics_doc` flag
+    `#[test]` functions that `unwrap`, so the recipe avoids it.
+  - `missing_docs_in_private_items` skips `#[cfg(test)]` items but reported
+    about 300 warnings on an existing 4,000-line Axum service.
+  - `allow-unwrap-in-tests` removed all of that service's ~100 `unwrap_used`
+    hits, which were in test modules.
+  - On the fixture, the baseline recipe catches six runtime `unwrap`s and one
+    bare `#[allow]`, and nothing about naming, structure, or docs.
+  - An unmet `#[expect]` warns `unfulfilled_lint_expectations`.
+- `rust-axum-service` now points to `rust-style`.
+- Validation and 43 tests pass. A scratch install of the `rust-axum` pack
+  rendered `rust-style` into `.claude/`, `.agents/`, and `.ai/`.
+- **Not done:**
+  - The evals have not been run against a model.
+  - The skill is not installed in any consuming repository; that is a separate
+    task there.

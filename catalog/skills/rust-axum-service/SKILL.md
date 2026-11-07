@@ -10,7 +10,8 @@ metadata:
 # Rust Axum Service
 
 Write idiomatic Rust, and keep the service small enough that its behaviour stays
-obvious. Use `clean-architecture` for boundary decisions and `rust-testing` for tests.
+obvious. Use `clean-architecture` for boundary decisions, `rust-style` for
+layout, naming, and doc comments, and `rust-testing` for tests.
 
 ## Rust design
 
