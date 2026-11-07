@@ -13,6 +13,12 @@ Dependencies point inward, toward plain domain and application behaviour.
 Enforce responsibilities before directories. Do not impose a four-layer layout
 or new packages on code that a pure function and one adapter already keep clean.
 
+"Do not impose layers" is about dependency direction. It does not permit low
+cohesion. A pure module with the right dependencies can still mix several
+reasons to change, for example field checks, record types, parsing, and policy
+in one file. Split that module by reason to change, into a few cohesive files in
+the same place, without adding layers, ports, or packages.
+
 ## Responsibility ownership
 
 | Responsibility | Owns | Must not depend on |
@@ -49,6 +55,8 @@ or new packages on code that a pure function and one adapter already keep clean.
 - An adapter decides business rules: move the rule inward, keep the adapter mechanical.
 - A use case needs many unrelated dependencies: split it or narrow its ports.
 - Pure business tests need a real database: the dependency boundary is too low.
+- One file holds primitives, types, parsing, and policy, and changes to any of them
+  touch it: cohesion is too low, even if the dependencies are clean.
 
 ## Testing
 

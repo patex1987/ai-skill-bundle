@@ -6,7 +6,10 @@
       "name": "restyle-dense-file",
       "prompt": "Clean up src/poll.ts so it reads well. Keep the behaviour the same.",
       "expected_output": "Restructures the file with blank lines, named intermediates, guard-style flow, named constants, TSDoc without types, and an awaited cancel, then runs the repository's format, lint, and type-check commands.",
-      "files": ["evals/files/package.json", "evals/files/src/poll.ts"],
+      "files": [
+        "evals/files/package.json",
+        "evals/files/src/poll.ts"
+      ],
       "expectations": [
         "Adds a blank line after the imports and between each top-level declaration",
         "Splits the nested describe call: the config read, the parsed region, and the status each get a named const",
@@ -24,7 +27,9 @@
       "name": "comment-cleanup",
       "prompt": "Review the comments in src/overcommented.ts.",
       "expected_output": "Removes comments that narrate code, the commented-out code, and the typed JSDoc, and replaces them with a short TSDoc comment that says what the types cannot (rate as a fraction, rounding).",
-      "files": ["evals/files/src/overcommented.ts"],
+      "files": [
+        "evals/files/src/overcommented.ts"
+      ],
       "expectations": [
         "Identifies the narrating line comments (import, multiply, log, return) as noise and removes them",
         "Removes the commented-out line instead of keeping it",
@@ -39,7 +44,10 @@
       "name": "respect-repo-config",
       "prompt": "Add a function to src/poll.ts that lists running jobs. The repo's Prettier config uses double quotes and no semicolons.",
       "expected_output": "Writes the new function in the repository's configured style (double quotes, no semicolons), does not reformat the rest of the file, and runs the formatter on the touched file.",
-      "files": ["evals/files/package.json", "evals/files/src/poll.ts"],
+      "files": [
+        "evals/files/package.json",
+        "evals/files/src/poll.ts"
+      ],
       "expectations": [
         "Follows the repository's quote and semicolon configuration over the skill's own preferences",
         "Does not reformat unrelated code in the file, or proposes that as a separate formatting-only change",
@@ -52,7 +60,9 @@
       "name": "propose-lint-rules",
       "prompt": "Our agent keeps writing TypeScript with no blank lines and no doc comments, and Prettier doesn't fix it. How do we stop that?",
       "expected_output": "Explains that Prettier keeps but never adds blank lines, and proposes the padding-line, class-member, curly, require-jsdoc, no-types, and tsdoc/syntax rules from the lint recipe, with a staged rollout. It does not install anything without agreement.",
-      "files": ["evals/files/package.json"],
+      "files": [
+        "evals/files/package.json"
+      ],
       "expectations": [
         "States that Prettier preserves blank lines but does not insert them",
         "Proposes @stylistic/padding-line-between-statements with rules for imports, top-level declarations, blocks, and return",
@@ -67,12 +77,55 @@
       "name": "review-tags",
       "prompt": "Review src/poll.ts as part of a PR. Just give me the style findings.",
       "expected_output": "Reports one layout nit for the file with the lint rule that would catch it, raises the misleading public doc comment as a should, and reports the floating promise as a bug rather than style.",
-      "files": ["evals/files/src/poll.ts"],
+      "files": [
+        "evals/files/src/poll.ts"
+      ],
       "expectations": [
         "Groups the missing blank lines and braces into a single nit that names the lint rule, instead of one comment per line",
         "Tags the poller doc comment (types repeated, no units, no throws) as should, because it documents a public contract",
         "Reports the unawaited client.cancel in stop as a correctness issue, not a style nit",
         "Each finding cites path:line"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "split-oversized-contract",
+      "prompt": "Refactor src/booking-contract.ts so it is easier to read and change. It passes format, lint, type-check, and tests today. Keep the exported behaviour (parseBooking and the admission decision) the same.",
+      "expected_output": "Renames type-word and noun helpers to verb phrases, extracts named, documented Customer, Address, TimeWindow, Parcel, and BookingOptions types, splits the file by reason to change into field checks, types, parsing, and policy, removes the duplicated key lists, documents every export, and runs the repository checks.",
+      "files": [
+        "evals/files/src/booking-contract.ts",
+        "evals/files/package.json"
+      ],
+      "expectations": [
+        "Renames object, text, number, bool, and date to verb phrases such as parseJsonObject or requireObject, requireText, requireNumber, requireBoolean, and requireIsoDate; no function or variable is named object, text, string, number, bool, boolean, date, or data",
+        "Renames the noun helpers window, address, keys, and flag to verb or predicate names (for example parseTimeWindow, parseAddress, rejectUnknownKeys, needsSignatureWarning or isFragileWithoutSignature), and notes that window shadows a global",
+        "Replaces the inline nested object types in Booking with named interfaces (Customer, Address, TimeWindow, Parcel, BookingOptions or similar), and Address is defined once and used for both pickup and dropoff",
+        "Every exported interface and type alias, including Booking and Decision, has a doc comment that says what it represents, with units where relevant (grams, millimetres, cents)",
+        "Splits the module into separate files by reason to change: field primitives, record types (or schema), JSON parsing, and admission policy; it explains the split by reason to change, not by line count",
+        "Removes the duplication between the Booking interface and the *_KEYS lists: either derives the types from a schema (recommending the typescript skill's schema-first approach when a dependency is allowed) or keeps one key list per shape with a compile-time check against the type",
+        "Names the policy limits with units (for example MAX_WEIGHT_GRAMS, MAX_SIDE_MM, MAX_UNINSURED_VALUE_CENTS)",
+        "Flags that the error messages echo input values through JSON.stringify(value), and changes them to name the field and expected shape only",
+        "Preserves the observable behaviour of parseBooking and admit (same accepted inputs and the same admission reasons), and protects it with characterisation tests before moving code",
+        "Runs the format, lint, build, and test scripts from package.json at the end"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "review-oversized-contract",
+      "prompt": "Review src/booking-contract.ts. It is new in this PR and every check is green.",
+      "expected_output": "Reports naming, nested inline types, mixed concerns, duplicated key lists, and missing doc comments as should findings with path:line and the concrete cost of each, plus the value-echoing error messages, and does not dismiss them because the checks pass.",
+      "files": [
+        "evals/files/src/booking-contract.ts"
+      ],
+      "expectations": [
+        "States that green checks do not cover naming, cohesion, or schema duplication, and reviews them anyway",
+        "Raises the type-word helper names (object, text, number, bool, date) and the data variables as one should finding with path:line, explaining that the names say what a value is made of, not what the function does",
+        "Raises the Booking interface with nested inline object types as a should finding, noting that the address shape is written twice",
+        "Raises the mix of primitives, types, parsing, and policy in one file as a should finding about cohesion, with a concrete split",
+        "Raises the duplicated key lists (interface plus *_KEYS) as a should finding with the drift it invites, for example adding a field to Booking without adding it to PARCEL_KEYS",
+        "Raises the missing doc comments on the exported interface and type aliases",
+        "Reports the error messages that echo input values as a separate finding (a data-exposure risk, not style)",
+        "Does not post one comment per line for any of these; each finding groups its occurrences"
       ]
     }
   ]

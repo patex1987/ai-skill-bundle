@@ -92,6 +92,95 @@ These rules check that a comment exists and is well-formed. They cannot tell
 whether it is useful, so review the content against
 [doc-comments.md](doc-comments.md).
 
+## Naming and size (opt-in)
+
+These rules support the Naming and Module and type size sections. They are opt-in:
+the size limits are signals, and a cohesive file may legitimately pass them.
+Start them as `warn`. Lint cannot judge cohesion or schema derivation, so a
+reviewer still checks those.
+
+```js
+const TYPE_WORDS = '/^(object|text|string|number|bool|boolean|date|data)$/';
+
+export default [
+  {
+    files: ['**/*.ts'],
+    rules: {
+      // Functions, variables, and local import names must not be type or global words.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: `FunctionDeclaration > Identifier.id[name=${TYPE_WORDS}]`,
+          message: 'Name functions for what they do (parseX, requireX, isX, toX), not after a type or global.',
+        },
+        {
+          selector: `VariableDeclarator > Identifier.id[name=${TYPE_WORDS}]`,
+          message: 'Name values for their role, not after a type or global.',
+        },
+        {
+          selector: `ImportSpecifier > Identifier.local[name=${TYPE_WORDS}]`,
+          message: 'Rename the import for what it does, or use a namespace import.',
+        },
+      ],
+      // Soft size signals.
+      'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
+    },
+  },
+];
+```
+
+For exported interfaces and type aliases without doc comments, use the
+`jsdoc/require-jsdoc` rule from [Doc comments](#doc-comments). Its `contexts`
+already cover `TSInterfaceDeclaration` and `TSTypeAliasDeclaration`.
+
+If `no-restricted-syntax` is already configured, merge these selector entries into
+the existing list. A second config block for the same rule replaces the first; it
+does not merge.
+
+Behaviour verified on 2026-10-24 (ESLint 9.39, typescript-eslint 8.72,
+`eslint-plugin-jsdoc` 63.3):
+
+- **Why not `id-denylist`.** That core rule also reports interface fields, type
+  properties, object literal keys, class fields, parameters, and every *reference*
+  to a denied local name. A data field such as `{ date: string }` or `{ text: string }`
+  would be an error. The `no-restricted-syntax` selectors above report only
+  function declarations, variable declarations, and local import names. Calls to
+  functions you do not own, such as `z.string()`, are never reported.
+- **Imports.** `import { string } from 'zod'` is reported. Use
+  `import * as z from 'zod'`, or rename the import locally (`import { text as label }`
+  is not reported).
+- **`max-lines`** defaults to 300 and does not count the final newline. Without the
+  skip options, blank and comment-only lines count.
+- **`max-lines-per-function`** defaults to 50, and **counts nested functions inside
+  the outer function**. A factory that returns a 40-line closure plus 15 lines of
+  setup is reported. Extract the closure, or accept the warning when the factory
+  reads clearly.
+- **`require-jsdoc` with `publicOnly`** reports exported interfaces, exported type
+  aliases, and exported constants. It skips non-exported interfaces and aliases,
+  and anything that already has a `/** */` comment. It checks only that a comment
+  exists, not that it is useful.
+
+### Boolean names (typed linting)
+
+`@typescript-eslint/naming-convention` can require predicate prefixes on booleans,
+but its `types` option needs type information. That makes linting slower and
+requires `parserOptions.projectService`. Add it only if the repository already
+lints with types:
+
+```js
+'@typescript-eslint/naming-convention': ['warn', {
+  selector: ['variable', 'parameter'],
+  types: ['boolean'],
+  // The prefix is trimmed before the format check, so PascalCase allows isEnabled.
+  format: ['PascalCase'],
+  prefix: ['is', 'has', 'can', 'should', 'did', 'will'],
+}],
+```
+
+This was verified to report `const active = …` and a `flag: boolean` parameter,
+and to accept `isActive` and `hasItems`.
+
 ## Rolling it out
 
 1. Start with the workspaces you are actively changing. Use a `files` list, and

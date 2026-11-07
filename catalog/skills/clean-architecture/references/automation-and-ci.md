@@ -51,3 +51,7 @@ adapters                        -> filesystem, subprocess, schema loading, GitHu
 Do not force service layers onto straightforward construct or stack code.
 Apply ports and adapters only to control-plane automation that makes decisions:
 promotion, drift handling, or environment admission.
+
+This limits layers, not cohesion. A contract or configuration module that is pure
+and dependency-free still splits by reason to change, for example `fields`,
+`types` or `schema`, `parse`, and `policy`, when one file holds all four.

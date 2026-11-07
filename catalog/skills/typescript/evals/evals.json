@@ -1,0 +1,35 @@
+{
+  "skill_name": "typescript",
+  "evals": [
+    {
+      "id": 1,
+      "name": "schema-first-validation",
+      "prompt": "Replace the hand-written validator in src/booking-contract.ts. New runtime dependencies are allowed in this package. The package is shipped with the Dockerfile in this directory.",
+      "expected_output": "Defines strict zod schemas as the source of truth, infers the types from them, removes the duplicated key lists, formats errors by field path with unknown keys first and without values, adds the library to dependencies, and checks that the Docker image installs it.",
+      "files": ["evals/files/src/booking-contract.ts", "evals/files/package.json", "evals/files/Dockerfile"],
+      "expectations": [
+        "Defines schemas with z.strictObject (or .strict()) for the booking and for every nested object, so unknown keys are rejected at every level, and states that plain z.object would silently strip them",
+        "Infers Booking and the nested types from the schemas with z.infer instead of keeping a separate hand-written interface, and removes all *_KEYS lists",
+        "Uses a namespace import (import * as z from 'zod') rather than named imports such as object or string",
+        "Error messages name the field path and expected shape and never include the received value; the existing JSON.stringify(value) messages are called out as a data-exposure problem",
+        "Lists unknown-key issues before other issues, noting that zod reports them after field issues so the formatter must sort",
+        "Adds the schema library to dependencies, not devDependencies",
+        "Checks the Dockerfile: the runtime stage runs npm ci --omit=dev from package.json, so the dependency is installed only if it is in dependencies, and recommends running the built image (or dist) as proof, not only the tests",
+        "Keeps parseBooking's accepted inputs and admission behaviour the same, with tests for an unknown key, a nested unknown key, and a wrong type"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "hand-written-needs-reason",
+      "prompt": "This package must stay dependency-free. Tidy the validation in src/booking-contract.ts.",
+      "expected_output": "Keeps a hand-written validator, states the no-dependency reason in the module doc comment, and keeps a single key list per shape with a compile-time check against the type.",
+      "files": ["evals/files/src/booking-contract.ts"],
+      "expectations": [
+        "Does not add a schema library, and records the reason (dependency-free package) in the module doc comment",
+        "Keeps one key list per shape and adds a compile-time check that fails if the type and the key list differ in either direction",
+        "Rejects unknown keys before validating fields, and error messages name fields without echoing values",
+        "Renames the type-word helpers to verb phrases, deferring wider style changes to typescript-style"
+      ]
+    }
+  ]
+}

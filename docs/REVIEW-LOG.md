@@ -364,3 +364,66 @@ xpepper's `guided-flow-review`.
   - The evals have not been run against a model.
   - The skill is not installed in any consuming repository; that is a separate
     task there.
+
+## Follow-up: naming, module cohesion, and schema-first validation
+
+Plan: `docs/plans/typescript-naming-cohesion-validation.md`.
+
+- **Problem:** an agent wrote a 600-line pure contract module that passed format,
+  lint, type-check, and tests. A reviewer rejected it for five reasons:
+  - helpers named after types (`object()`, `text()`, `date()`)
+  - one interface with nested inline types
+  - four concerns in one file
+  - a hand-written validator that repeated every key list from the interface
+  - undocumented exported interfaces
+
+  The catalog covered none of these explicitly.
+- **`typescript-style`:**
+  - New **Naming** section: verb-phrase functions, a ban on type and global
+    words for functions, variables, and import names, predicate booleans,
+    units in names, and a bad and good example.
+  - New **Module and type size** section: one reason to change, the four-concern
+    split signal, named documented nested types (reused, or more than about five
+    fields), soft limits of about 300 lines per file and 50 per function, and
+    one source of truth per shape.
+  - The checklist and review tags were extended to match.
+- **`typescript`:** new **Runtime validation** section and
+  `references/runtime-validation.md`:
+  - The schema library comes first when the dependency is allowed, and the
+    types are inferred from the schema.
+  - A hand-written validator needs a stated reason, plus a compile-time
+    key-list check.
+  - Objects are strict at every level.
+  - Error messages name fields, never values, with unknown keys first.
+  - Unbundled consumers (Dockerfiles, layers, workspace packages) must ship the
+    dependency.
+- **`clean-architecture`:** "do not impose layers" is about dependency direction,
+  not permission for low cohesion. A new design-pressure check, and the same
+  note in `references/automation-and-ci.md` for infrastructure code.
+- **Lint recipe:** opt-in naming and size rules:
+  - `no-restricted-syntax` selectors for type-word names
+  - `max-lines` and `max-lines-per-function`
+  - the existing `require-jsdoc` contexts for exported types
+  - optional typed `naming-convention` for booleans
+
+  `id-denylist` was rejected after testing: it also reports interface fields,
+  type properties, object keys, parameters, and every reference to a denied
+  local, which makes data fields such as `{ date: string }` errors.
+- **Verified on 2026-10-24** (ESLint 9.39, typescript-eslint 8.72,
+  `eslint-plugin-jsdoc` 63.3, zod 4.6):
+  - Each rule was run in a scratch project.
+  - `max-lines-per-function` counts nested functions.
+  - The zod example compiles under `strict`. It lists unknown keys first, and
+    a secret value in the input does not appear in the message.
+  - The compile-time key check fails for a missing key and for an extra key.
+- **Evals:**
+  - An anonymised fixture, `booking-contract.ts` (230 lines). It compiles under
+    `strict` and reproduces all five defects. The naming lint flags its 8
+    type-word names, but no rule flags its cohesion or duplication problems.
+  - `typescript-style` cases 6 (refactor) and 7 (review).
+  - A new `typescript` eval file: schema-first rewrite with a Dockerfile
+    packaging check, and a dependency-free variant.
+- **`readability-maintainability` agent:** explicit naming and cohesion steps.
+  Green checks are not evidence for naming or cohesion. These findings are
+  tagged `should`.
+- **Not done:** the evals have not been run against a model.

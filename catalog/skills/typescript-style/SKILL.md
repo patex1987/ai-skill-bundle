@@ -1,6 +1,6 @@
 ---
 name: typescript-style
-description: Write and review TypeScript that is easy to read, covering the layout that formatters and linters enforce, readable statement structure, idiomatic language choices, and TSDoc comments that explain behaviour rather than repeat types. Use whenever writing or editing TypeScript, when generated code comes out dense, unformatted, or undocumented, when adding or reviewing doc comments, or when setting up formatter and lint rules for code style. For type design and runtime validation, use the typescript skill.
+description: Write and review TypeScript that is easy to read and change, covering formatter- and linter-enforced layout, verb-phrase naming, readable statement structure, module cohesion and type size, idiomatic language choices, and TSDoc comments that explain behaviour rather than repeat types. Use whenever writing or editing TypeScript, when generated code comes out dense, badly named, oversized, or undocumented, when adding or reviewing doc comments, or when setting up formatter and lint rules for code style. For type design and runtime validation, use the typescript skill.
 license: MIT-0
 metadata:
   routing-tier: balanced
@@ -45,6 +45,40 @@ when the difference matters.
   [references/lint-recipe.md](references/lint-recipe.md). Do not add tooling or
   dependencies without agreement.
 
+## Naming
+
+A name tells the reader what to expect without opening the definition.
+
+- **Functions are named for what they do**, with a verb or verb phrase:
+  `parseBooking`, `requireText`, `isExpired`, `toSummary`, `loadConfig`. Use the
+  prefix consistently. `parseX` returns a value or throws, `requireX` asserts a
+  field is present and valid, `isX` and `hasX` return booleans, and `toX` converts
+  without validating.
+- **Never name a function or variable after a type or global:** `object`, `text`,
+  `string`, `number`, `bool`, `boolean`, `date`, `data`. These names say what the
+  value is made of, not what it means. They also shadow globals or read as type
+  keywords. The ban covers declarations and local import names. A *field* such as
+  `{ date: string }` is fine when the domain calls it that.
+- **Booleans read as predicates:** `isReady`, `hasExpired`, `canRetry`,
+  `shouldNotify`. Do not use `flag`, `status`, or `check` for a boolean.
+- **Values are named for their role**, not their shape: `pendingBookings`, not
+  `list` or `arr`. Units go in the name when the type cannot carry them:
+  `timeoutMs`, `sizeBytes`.
+
+```ts
+// Hard to follow: what does object() do? Does text() parse, check, or convert?
+function object(value: unknown): Record<string, unknown> { ... }
+function text(record: Record<string, unknown>, key: string): string { ... }
+const data = object(JSON.parse(raw));
+const bool = data.active === true;
+
+// Says what each step does
+function parseJsonObject(raw: string): Record<string, unknown> { ... }
+function requireText(record: Record<string, unknown>, field: string): string { ... }
+const booking = parseJsonObject(raw);
+const isActive = booking.active === true;
+```
+
 ## Readable structure
 
 - **Name intermediate results** instead of nesting calls inside arguments,
@@ -78,6 +112,54 @@ when the difference matters.
 - **Group long argument lists.** Give a long array of flags or options a named
   constant, or build it in small named parts, rather than one 20-line literal
   inside a call.
+
+## Module and type size
+
+A file that passes every check can still be too much to hold in your head.
+
+- **A module has one reason to change.** Split it when one file mixes several
+  of these:
+  - field primitives (reusable value checks)
+  - record types
+  - parsing and I/O mapping (JSON, environment, CLI output)
+  - policy (decisions over parsed values)
+
+  A typical split is `fields.ts`, `booking.ts` (types or schema), `parse.ts`, and
+  `policy.ts`, with an `index.ts` only if the package needs one public entry point.
+  A pure module with no I/O can still need splitting: being free of side effects
+  says nothing about cohesion.
+- **Name the nested types.** Give a nested object type a named, documented
+  `interface` when it appears in more than one place or has more than about five
+  fields. Inline object types are fine for small, one-off shapes.
+
+  ```ts
+  // Hard to scan, and the address shape cannot be reused or documented
+  export interface Booking {
+    customer: { id: string; name: string; email: string; phone: string; tier: string; since: string };
+    pickup: { street: string; city: string; postcode: string; country: string };
+    dropoff: { street: string; city: string; postcode: string; country: string };
+  }
+
+  // Named parts, each documented once
+  /** Postal address where a parcel is collected or delivered. */
+  export interface Address { ... }
+
+  /** The customer who placed the booking. */
+  export interface Customer { ... }
+
+  /** A confirmed request to move one parcel. */
+  export interface Booking {
+    readonly customer: Customer;
+    readonly pickup: Address;
+    readonly dropoff: Address;
+  }
+  ```
+- **Soft size signals:** about 300 lines per file, or about 50 lines per function.
+  Passing one is a prompt to look for a second reason to change, not an order to
+  split. Do not split a cohesive file only to get under the number.
+- **One source of truth per shape.** When a type and a validator each list the
+  same keys, the lists will drift. Derive one from the other (see the
+  `typescript` skill on runtime validation).
 
 ## Idioms
 
@@ -119,12 +201,27 @@ implementation looks the way it does. See
 - [ ] The formatter and linter fixers ran on the touched files, and the checks and type-check pass.
 - [ ] Imports, top-level declarations, and logical steps are separated by blank lines.
 - [ ] No call is nested more than two deep where a named intermediate would read better.
-- [ ] Every new or changed export has a doc comment that describes behaviour, not types.
+- [ ] Functions are verb phrases. No function or variable is named after a type or
+      global (`object`, `text`, `string`, `number`, `bool`, `date`, `data`).
+- [ ] Booleans read as predicates (`isX`, `hasX`, `canX`, `shouldX`).
+- [ ] Each touched module has one reason to change. Files near 300 lines or
+      functions near 50 were checked for a second concern.
+- [ ] Nested object types that are reused or have more than about five fields are
+      named and documented.
+- [ ] No key list is written twice (type and validator). One is derived from the other.
+- [ ] Every new or changed export, including interfaces and type aliases, has a
+      doc comment that describes behaviour, not types.
 - [ ] No comment restates the code, and no comment was left stale by the change.
 
 ## When reviewing
 
 Report layout problems as one `nit` per file, and name the lint rule that would
-prevent them, instead of commenting on each line. Raise a missing or misleading doc
-comment on a public contract to `should`. Report structure that hides a bug as that
-bug, not as style.
+prevent them, instead of commenting on each line. Raise these to `should`:
+
+- a misleading or missing doc comment on a public contract
+- names that hide what a function does (type-word or noun names on functions)
+- a module that mixes primitives, types, parsing, and policy
+- a key list duplicated between a type and its validator
+
+Each of these makes the next change harder, even when the code works today.
+Report structure that hides a bug as that bug, not as style.

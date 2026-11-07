@@ -10,6 +10,8 @@ style guides, which were read on 2026-10-24. Nothing was copied verbatim.
 | [perdolique/workflow `typescript-conventions`](https://github.com/perdolique/workflow/tree/main/skills/typescript-conventions) | Unlicense | Name non-trivial intermediate results; order statements by data flow; keep declarative builders chained; no pass-through wrappers; comment non-obvious decisions only |
 | [thenordicone/claude-skills `typescript`](https://github.com/thenordicone/claude-skills/tree/main/skills/typescript) | MIT | Guard clauses, no `else` after `return`; `function` declarations for named functions; `as const` over `enum`; no floating promises |
 | [pproenca/dot-skills `ts-google`](https://github.com/pproenca/dot-skills/tree/main/skills/.experimental/ts-google) | MIT | A rule list derived from the Google guide; checked against the guide itself |
+| [ESLint rules](https://eslint.org/docs/latest/rules/) (`max-lines`, `max-lines-per-function`, `id-denylist`, `no-restricted-syntax`) | MIT | Rule options and defaults, checked against the docs and by running each rule |
+| [typescript-eslint `naming-convention`](https://typescript-eslint.io/rules/naming-convention/) | MIT | Boolean prefix configuration; type information requirement |
 | [claude-dev-suite `jsdoc-tsdoc`](https://github.com/claude-dev-suite/claude-dev-suite/blob/main/skills/documentation/jsdoc-tsdoc/SKILL.md) | MIT | TSDoc versus JSDoc; describe behaviour, not types; name the replacement in `@deprecated` |
 
 This skill differs from these sources in four ways:
