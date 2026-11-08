@@ -490,3 +490,56 @@ Plan: `docs/plans/typescript-naming-cohesion-validation.md`.
   `validate` before the fix. 44 tests pass, also with the real `target/` present.
 - **Not covered:** `render.py --check` still reports a rendered skill as stale if
   something builds inside the rendered copy under `.claude/` or `.agents/`.
+
+## Plan lifecycle, slice 1: Status, close-out, `plan-sweep`, `adr`
+
+Plan: [docs/plans/workflow-memory-and-lifecycle.md](plans/workflow-memory-and-lifecycle.md),
+slice 1 (steps 1-6).
+
+- **Problem:** nothing recorded what was built, which decisions were made, or the
+  current architecture. Plans had no status and stayed in `docs/plans/` forever.
+- **Planner:** the plan template moved to `references/plan-template.md` (template
+  text unchanged; `SKILL.md` went from 371 lines and 14,889 bytes to 214 lines and
+  10,018 bytes, then 229 lines and 11,034 bytes with the lifecycle text). The
+  template gains `Status:` (`draft`, `agreed`, `in-progress`, `done`, `abandoned`,
+  with who sets each), a Docs Impact section with ADR candidates, and an As-built
+  placeholder. The planner sets `draft`, `agreed` (after test agreement and
+  authorization), and `abandoned`, never `done`.
+- **`plan-execution`:** one sentence: set `Status: in-progress` when execution starts.
+- **`plan-validation`:** a close-out step after a **verified** verdict: `Status:
+  done`, As-built with deviations, Docs impact reconciled, architecture edits
+  proposed for approval, ADR candidates left for `adr` or `plan-sweep`. A light plan
+  only gets `Status: done`. It deletes nothing. It names the `plan-sweep`
+  architecture convention in prose, because `validate` rejects links that leave a
+  skill directory, and gives a short fallback for when `plan-sweep` is not installed.
+- **New `plan-sweep`** (`balanced/medium`, explicit only, `core`): selects `done` and
+  `abandoned` plans, verifies As-built claims against the code before promoting,
+  proposes destinations (architecture, ADR, lesson, nowhere), lists each deletion
+  with its tracked state, and applies only approved items. "Looks good" or "I trust
+  you" is not approval to delete. `references/architecture-docs.md` describes
+  `docs/architecture/` with `overview.md` as the entry point.
+- **New `adr`** (`balanced/medium`, `core`): modes `propose`, `record`, `supersede`,
+  `extract-from-plan`; a three-part significance test with writing nothing as the
+  default; a rejected alternative is required; a minimal MADR-based layout in
+  `references/adr-template.md`; accepted ADRs change only through supersession.
+- **Tiers:** as in the plan's assumption A5. `plan-sweep` stays `balanced`
+  although it can delete files: the author approves every deletion, and its
+  hardest decision, checking claims against code, is checklist work.
+- **Tests:** `LifecycleEntities` in `tests/test_aibundle.py` checks that both skills
+  exist with a tier in `core`, that `plan-sweep` is explicit with its reference,
+  that the template has the lifecycle fields, and that each of the four skills has
+  at least three eval cases tagged `lifecycle`, one of them also tagged
+  `negative`. The tests failed before the content existed. 47 tests pass.
+- **Evals:** 5 for `adr`, 4 for `plan-sweep`, 4 for `plan-validation` (its first
+  evals), and 3 new planner cases, with small rate-limit fixtures. The
+  `plan-validation` fixture's tests pass. The `plan-sweep` fixture plants an
+  As-built claim that the code contradicts.
+- **Verified:** a scratch install of `core` renders both skills into `.claude/skills`
+  and `.agents/skills`; `plan-sweep` gets `disable-model-invocation: true` and
+  `allow_implicit_invocation: false`; `render.py --check` is clean.
+- **Not done:**
+  - The evals have not been run against a model, so no behaviour change is
+    proven: triggering, the significance test, approval handling, close-out.
+  - Nothing is installed in a consuming repository.
+  - Slices 2-4 (debugging, isolation, phase boundaries, diagrams, customer lens,
+    plan lint, size budget, branch flow) are not started.

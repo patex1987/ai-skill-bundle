@@ -1,0 +1,110 @@
+{
+  "skill_name": "adr",
+  "notes": "Written, not yet run against a model. Copy evals/files/ into the root of an empty scratch git repository and commit it before each case. Every case carries the 'lifecycle' tag; 'negative' cases check that nothing is written.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "trivial-decision-writes-nothing",
+      "tags": [
+        "lifecycle",
+        "negative"
+      ],
+      "prompt": "Write an ADR for naming the rate limit module rate_limit.py instead of throttle.py. It is in docs/plans/api-rate-limit.md.",
+      "expected_output": "Applies the significance test, finds the naming decision easy to reverse and unsurprising, writes nothing, and says where the information belongs instead.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/docs/adr/README.md"
+      ],
+      "expectations": [
+        "States that the decision fails the significance test, naming at least \"hard to reverse\" as the failed part",
+        "Creates no file under docs/adr/ and leaves docs/adr/README.md unchanged",
+        "Says in one or two sentences where the information belongs instead (for example the plan or a commit message)",
+        "Does not invent a stronger rationale to make the decision qualify"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "record-significant-decision",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "Record an ADR for the in-process token bucket decision in docs/plans/api-rate-limit.md.",
+      "expected_output": "Writes docs/adr/0002 for the token bucket with the rejected Redis alternative, status accepted, the decider and source, and adds it to the index without touching ADR 0001.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/docs/adr/README.md",
+        "evals/files/docs/adr/0001-store-sessions-in-postgres.md",
+        "evals/files/src/rate_limit.py"
+      ],
+      "expectations": [
+        "Applies the three-part significance test and states the result for each part",
+        "Creates docs/adr/0002-<kebab-title>.md, numbered after the existing 0001",
+        "The ADR has status accepted, a date, and names the decider from the plan (user, Q-03)",
+        "Considered options name the shared Redis counter as the rejected alternative with its reason",
+        "Consequences include that limits are per instance and multiply with instances",
+        "Links the source plan",
+        "Adds one line for 0002 to docs/adr/README.md",
+        "Does not modify docs/adr/0001-store-sessions-in-postgres.md",
+        "Does not commit"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "supersede-changes-only-old-status",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "We decided today to move sessions out of Postgres into the cache cluster: session reads now dominate database load. The rejected option was keeping Postgres with a read replica, because replica lag breaks logout. Supersede ADR 0001.",
+      "expected_output": "Writes 0002 superseding 0001, changes only the status line of 0001, and updates both index entries.",
+      "files": [
+        "evals/files/docs/adr/README.md",
+        "evals/files/docs/adr/0001-store-sessions-in-postgres.md"
+      ],
+      "expectations": [
+        "Creates docs/adr/0002-<kebab-title>.md with status accepted and a \"Supersedes: 0001\" link",
+        "Names the read-replica option as rejected, with replica lag breaking logout as the reason",
+        "In 0001, changes only the status line, to 'superseded by 0002'; the rest of the file is byte-identical",
+        "Updates docs/adr/README.md so 0001 shows superseded and 0002 is listed"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "standard-practice-is-not-an-adr",
+      "tags": [
+        "lifecycle",
+        "negative"
+      ],
+      "prompt": "Make an ADR saying we return 429 with a Retry-After header when a client is over the limit.",
+      "expected_output": "Declines because returning 429 with Retry-After is standard HTTP behaviour, so it is not surprising, and no real alternative was weighed.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/docs/adr/README.md"
+      ],
+      "expectations": [
+        "States that the decision fails \"surprising without context\" and has no real rejected alternative in the plan",
+        "Writes no ADR file and does not edit the index",
+        "Offers to write it if the author names a real alternative that was considered, without inventing one"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "extract-from-plan-returns-drafts-only",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "You are called by plan-sweep in extract-from-plan mode for docs/plans/api-rate-limit.md. Return draft ADRs for its candidates.",
+      "expected_output": "Checks both candidates against the code, returns one draft for the token bucket, declines the module name, and writes no files.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/docs/adr/README.md",
+        "evals/files/src/rate_limit.py"
+      ],
+      "expectations": [
+        "Checks the token bucket claim against src/rate_limit.py and cites it",
+        "Returns one draft ADR, for the in-process token bucket, numbered 0002",
+        "Declines the module-name candidate with the failed significance test",
+        "Writes no files; the drafts are returned to the caller"
+      ]
+    }
+  ]
+}

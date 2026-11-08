@@ -1,6 +1,6 @@
 ---
 name: plan-validation
-description: Validate an implementation against the agreed plan, acceptance scenarios, and repository checks, recording evidence and remaining gaps. Use for final verification or reviewing whether a planned change is complete.
+description: Validate an implementation against the agreed plan, acceptance scenarios, and repository checks, recording evidence and remaining gaps, then close out a verified plan (status, as-built record, docs impact). Use for final verification or reviewing whether a planned change is complete.
 license: MIT-0
 metadata:
   routing-tier: balanced
@@ -37,3 +37,30 @@ Write results into the established plan/log or `docs/validation/<task>.md`. Incl
 - Verdict: **verified**, **incomplete**, or **blocked**, with the specific reason.
 
 Use verified only when agreed acceptance and required checks are satisfied. A result scoped to local checks does not establish deployment success. Update task completion accurately and report material limitations in the final handoff. Validation itself does not authorize pushing, merging, or deploying.
+
+## Close out the plan
+
+Run this step only after a **verified** verdict. After **incomplete** or **blocked**,
+leave `Status:` unchanged and list what remains.
+
+For a light plan (Docs impact "None" and no deviations from the plan), set
+`Status: done` and stop. Otherwise:
+
+1. **Set `Status: done`** in the plan header.
+2. **Write the As-built section** from evidence: the diff, the execution log, and
+   your validation record, not from the plan's intent. List each deviation from the
+   plan with its reason, and link the validation record.
+3. **Reconcile Docs impact.** Mark each item done (name the file changed) or dropped
+   (give the reason). Add any doc impact discovered during the work.
+4. **Propose architecture edits.** Draft the changes to the documents in
+   `docs/architecture/` (usually `overview.md`) that the built change requires. Show
+   them to the author and write them only after approval, including creating the
+   folder. The folder convention is in `references/architecture-docs.md` of the
+   `plan-sweep` skill. Without that skill, keep `overview.md` to purpose and
+   boundaries, components, data and control flow, external dependencies, key
+   decisions, known gaps, and "last verified against <commit>".
+5. **Leave ADR candidates** listed in As-built for `adr` or `plan-sweep`. Do not write
+   ADRs here.
+
+Close-out deletes nothing and does not move the plan or its research, review, or
+validation files. Removing them is `plan-sweep`'s job, and only when the author asks.

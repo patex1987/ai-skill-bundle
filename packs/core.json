@@ -1,12 +1,14 @@
 {
-  "description": "Research, plan, test-first execution, validation, and model routing workflow, plus cheap scout and check-runner agents.",
+  "description": "Research, plan, test-first execution, validation and close-out, plan sweep, ADRs, and model routing workflow, plus cheap scout and check-runner agents.",
   "skills": [
     "codebase-research",
     "external-research",
     "principal-engineer-planner",
     "plan-execution",
     "plan-validation",
-    "model-routing"
+    "model-routing",
+    "plan-sweep",
+    "adr"
   ],
   "agents": [
     "scout",
