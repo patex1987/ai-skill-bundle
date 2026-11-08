@@ -11,8 +11,9 @@ adds independent reviewers.
 | Research | `codebase-research`, `external-research` | `docs/research/<task>-codebase.md`, `docs/research/<topic>-external.md` |
 | Plan + annotate | `principal-engineer-planner` | `docs/plans/<feature>.md` |
 | Implement | `plan-execution` | code and tests; ticks steps in the plan |
-| Validate | `plan-validation` | evidence in the plan or `docs/validation/<task>.md` |
+| Validate + close out | `plan-validation` | evidence in the plan or `docs/validation/<task>.md`; `Status: done` and As-built in the plan |
 | Review | `pr-walkthrough`; agents `security-practices`, `system-design-scalability`, `performance-scalability`, `readability-maintainability` | findings |
+| Sweep (on request) | `plan-sweep`, `adr` | approved edits to `docs/architecture/` and `docs/adr/`; approved deletions |
 | Helpers | `scout`, `check-runner`, `model-routing` | search results and check output, tier changes |
 
 Prompts below are examples. The skill names in them make the skills trigger
@@ -56,6 +57,9 @@ reliably.
 
    The plan covers requirements, alternatives and trade-offs, risks, agreed
    acceptance tests, ordered steps with a suggested model tier for each, and rollout.
+   It starts with `Status: draft` and has a **Docs impact** section: the
+   architecture documents that will change, ADR candidates (each with the
+   alternative it rejects, usually none), and other docs.
    If you have a reference implementation, from your code or from open source,
    paste it in or give its path.
 
@@ -100,7 +104,8 @@ survives context compaction and goes into the PR.
     > Mark each step done in the plan as you go. Don't stop until every step is
     > done. Run typecheck and tests continuously. No unnecessary comments.
 
-    That message is the authorization. `plan-execution` does not treat an
+    That message is the authorization, and the plan becomes `Status: agreed`;
+    `plan-execution` sets `in-progress` when it starts. It does not treat an
     "approved" label in the file as permission by itself. It works test-first,
     against the acceptance tests agreed in the plan.
 12. **Keep corrections short:** "you didn't implement `X`", "match the existing
@@ -117,7 +122,12 @@ survives context compaction and goes into the PR.
     > Use plan-validation against the plan.
 
     It checks the result against the acceptance tests and repository checks, and
-    records the evidence and gaps.
+    records the evidence and gaps. After a **verified** verdict it closes out the
+    plan: `Status: done`, an **As-built** section with the deviations and their
+    reasons, each Docs impact item marked done or dropped, and proposed edits to
+    `docs/architecture/overview.md` that it writes only after you approve them. A
+    light plan (Docs impact "None", no deviations) only gets `Status: done`.
+    Close-out deletes nothing.
 15. **Review.** To understand the change and review it together, walk through it:
 
     > Use pr-walkthrough on this branch.
@@ -135,6 +145,29 @@ Along the way, delegate broad searches to `scout` and noisy test or lint runs to
 `check-runner`, both `fast` agents, to keep the expensive session's context clean.
 `model-routing` decides when to escalate (repeated failure without new evidence,
 a new security or data concern) and caps escalation at once per step.
+
+## After shipping: sweep finished plans
+
+Plans, research, review records, and validation records stay in `docs/` until you
+sweep them. Durable knowledge lives in `docs/architecture/` (`overview.md` is the
+entry point) and `docs/adr/`. Every few features, run:
+
+> Use plan-sweep.
+
+`plan-sweep` runs only when you name it. It takes plans with `Status: done` or
+`abandoned` (or those you name), checks their As-built claims against the code,
+and proposes where each piece goes: the architecture docs, an ADR (through `adr`),
+a lesson (you choose: an overlay, a rule, a check, a hook, or a memory), or
+nowhere. It lists each file it would delete. Nothing changes until you approve,
+and it deletes only the files you approve one by one. There is no sweep log: the
+cleanup commit lists what moved where and what was deleted.
+
+To record one decision directly:
+
+> Use adr to record the decision to `<decision>`; we rejected `<alternative>` because `<reason>`.
+
+`adr` writes nothing for decisions that are easy to reverse, unsurprising, or have
+no real alternative.
 
 ## Differences from the article
 

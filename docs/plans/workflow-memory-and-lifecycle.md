@@ -1,7 +1,8 @@
 # Plan: Plan lifecycle, durable project memory, and missing workflow skills
 
-Status: draft (no implementation authorized yet).
-Test agreement: **proposed** (the author has not yet agreed the scenarios in section 9).
+Status: in-progress (slice 1 done and validated; slices 2-4 not started).
+Test agreement: **agreed** (author, 2026-11-08, in the slice 1 session: AC-01 to AC-09).
+Implementation authorized: slice 1 only (author, 2026-11-08). Slices 2-4 need their own go-ahead.
 Planning depth: design review (new skills, changes to the core workflow skills, a script, and a validator change).
 
 ## 1. Summary
@@ -257,7 +258,7 @@ None. The four questions raised in the first draft are answered as D12 to D15.
 | A separate delta file per change | Rejected: the plan's Docs impact plus the doc diff covers it, and a delta file would be deleted with the plan. |
 | Full Working Backwards (PR/FAQ) skill | Deferred: the lens is cheaper, and a brief would be a new document type for the sweep. Revisit if the lens grows. |
 
-## 9. Testing strategy and acceptance scenarios (proposed, not agreed)
+## 9. Testing strategy and acceptance scenarios (agreed by the author, 2026-11-08)
 
 The new skills are prose, so structure is tested automatically and behaviour only
 through evals that are **written but not run against a model** (same limitation as
@@ -368,9 +369,9 @@ entities block the update, as designed. Rollback is a revert of the slice's PR.
 - [x] Security and abuse implications were reviewed
 - [x] Rollout and rollback are defined
 - [x] Steps are ordered, with a tier and verification
-- [ ] Acceptance scenarios agreed with the author (currently **proposed**)
+- [x] Acceptance scenarios agreed with the author (2026-11-08)
 - [x] Open questions answered (D12 to D15)
-- [ ] Implementation authorized (not yet)
+- [ ] Implementation authorized (slice 1 only, 2026-11-08; slices 2-4 not yet)
 
 ## 15. Docs impact
 
@@ -384,7 +385,56 @@ entities block the update, as designed. Rollback is a revert of the slice's PR.
 
 ## 16. As-built
 
-Not started.
+### Slice 1 (branch `lifecycle-slice-1`, 2026-11-08)
+
+Steps 1-6 done. Commits: the plan, the template move (step 2), the lifecycle
+content with its structure tests (steps 3-4), the evals (step 5), and docs (step 6).
+The step 3 tests were not committed on their own, because commits are made only on
+green; their failing run is recorded below.
+
+Validation against the slice 1 scenarios:
+
+| ID | Evidence | Result |
+|---|---|---|
+| AC-01 | `python3 scripts/aibundle.py validate`: "Validated 37 entities, 14 packs, and routing tiers" (35 before) | pass |
+| AC-03 | Scratch repo under the session scratchpad: `aibundle.py init --pack core`, `install` (12 files), `.ai/render.py` (27 outputs), `.ai/render.py --check`: "outputs are current". `adr` and `plan-sweep` under `.claude/skills` and `.agents/skills` with their references; `plan-sweep` has `disable-model-invocation: true` and `allow_implicit_invocation: false`; `adr` stays implicit | pass |
+| AC-07 | `LifecycleEntities` (4 tests) failed before the content: "adr is missing", "plan-sweep is missing", "adr has no evals.json", "'Status: draft' not found". Now `python3 -m unittest discover -s tests`: 47 tests OK. `adr` 5 cases, `plan-sweep` 4, `plan-validation` 4, planner +3, each with a `negative` case. Evals written, not run | pass (structure); behaviour untested |
+| AC-08 | Planner `SKILL.md`: 371 lines and 14,889 bytes before; 214 and 10,018 after the move; 229 and 11,034 now; template in `references/plan-template.md`. The size budget itself is slice 4 | pass (under 500 lines; budget not yet defined) |
+| AC-09 | `README.md`, `docs/workflow.md`, and `docs/REVIEW-LOG.md` describe Status, close-out, sweep, and ADRs; relative links in all three resolve (script check, 0 broken). Isolation and phase boundaries are slice 2 | pass for slice 1 scope; reviewer read pending |
+
+Deviations, each with its reason:
+
+- `plan-execution` changed (one sentence: set `Status: in-progress` when execution
+  starts). The design named no owner for `in-progress`; the author chose this.
+- `plan-validation` names `references/architecture-docs.md` of `plan-sweep` in prose
+  instead of linking it, because `validate` rejects links outside a skill
+  directory. It gives a short fallback. The author chose this.
+- A light plan's close-out still sets `Status: done` (A3 skips the rest), so that a
+  sweep can find it. This is an interpretation of A3; see open questions.
+- `plan-validation`'s description now mentions close-out, so the skill triggers for it.
+- The template has a table of Status values and who sets each, plus a review
+  checklist line for Docs impact. Its sections are renumbered: Docs Impact 18,
+  As-built 19, Handoff 20.
+- Eval convention: lifecycle cases carry the tag `lifecycle`, and negative cases
+  also carry `negative`. The structure test relies on these tags.
+- Planner evals (3 cases) were added as well, as the slice 1 handoff asked.
+- Tiers follow A5 (`adr` and `plan-sweep` `balanced/medium`); see `docs/REVIEW-LOG.md`.
+- The baseline was red before any change: an editor-built Cargo `target/` in the
+  `rust-style` eval fixture failed `validate` and 33 of 43 tests. With the author's
+  agreement, the tools now skip local build output, on a separate branch
+  (`fix/ignore-build-output`). During slice 1 the folder was moved to the session
+  scratchpad and was restored at the end.
+- The research record moved to `docs/reports/` and `docs/research_notes/` (done by
+  the author); the two path references in this plan were updated.
+
+Docs impact reconciliation (slice 1 items):
+
+- `README.md` new entities and packs: done. The external skills section belongs to
+  slice 3 and is still uncommitted.
+- `docs/workflow.md` lifecycle: done. Isolation defaults and phase boundaries: slice 2.
+- `docs/REVIEW-LOG.md`: done (slice 1 entry).
+- `docs/model-routing.md` / `model-routing`: unchanged; tiers follow A5.
+- ADR candidates: none, as forecast.
 
 ## 17. Handoff prompt for an implementation agent
 

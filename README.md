@@ -124,6 +124,19 @@ Design rationale and limits: [docs/model-routing.md](docs/model-routing.md).
 skills: research, plan, annotate the plan until it is right, then implement,
 validate, and review.
 
+The `core` pack also covers what happens after a plan is built:
+
+- Plans carry a `Status:` (`draft`, `agreed`, `in-progress`, `done`, `abandoned`)
+  and a **Docs impact** forecast with ADR candidates.
+- `plan-validation` closes out a verified plan: it sets `Status: done`, writes an
+  **As-built** section with the deviations, and proposes edits to
+  `docs/architecture/` for approval. It deletes nothing.
+- `plan-sweep` (explicit only) runs when you ask for it. It checks finished plans
+  against the code, promotes what is worth keeping to `docs/architecture/`, ADRs,
+  or lessons, and deletes only the files you approve one by one.
+- `adr` writes Architecture Decision Records in `docs/adr/`, only for decisions
+  that are hard to reverse, surprising without context, and a real trade-off.
+
 ## Maintaining the catalog
 
 ```sh
