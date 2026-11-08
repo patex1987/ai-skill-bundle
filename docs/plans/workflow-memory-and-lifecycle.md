@@ -410,7 +410,7 @@ Deviations, each with its reason:
   instead of linking it, because `validate` rejects links outside a skill
   directory. It gives a short fallback. The author chose this.
 - A light plan's close-out still sets `Status: done` (A3 skips the rest), so that a
-  sweep can find it. This is an interpretation of A3; see open questions.
+  sweep can find it. An interpretation of A3, confirmed by the author (2026-11-08).
 - `plan-validation`'s description now mentions close-out, so the skill triggers for it.
 - The template has a table of Status values and who sets each, plus a review
   checklist line for Docs impact. Its sections are renumbered: Docs Impact 18,
