@@ -429,8 +429,8 @@ Deviations, each with its reason:
 
 Docs impact reconciliation (slice 1 items):
 
-- `README.md` new entities and packs: done. The external skills section belongs to
-  slice 3 and is still uncommitted.
+- `README.md` new entities and packs: done. The external skills section (planned for
+  slice 3) was committed on this branch at the author's request, with the research record.
 - `docs/workflow.md` lifecycle: done. Isolation defaults and phase boundaries: slice 2.
 - `docs/REVIEW-LOG.md`: done (slice 1 entry).
 - `docs/model-routing.md` / `model-routing`: unchanged; tiers follow A5.
