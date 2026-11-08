@@ -136,6 +136,33 @@ class Installation(Workspace):
         self.assertEqual(lock['packs'], ['typescript', 'architecture', 'nestjs'])
         self.assertIn('skills/nestjs', lock['entities'])
 
+    def test_local_build_output_is_ignored_everywhere(self):
+        skill = self.catalog / 'catalog/skills/plan-execution'
+        before = self.bundle('validate')
+        self.assertEqual(before.returncode, 0, before.stdout)
+        fixture = skill / 'evals/files'
+        (fixture / 'target/debug').mkdir(parents=True)
+        (fixture / 'Cargo.toml').write_text('[package]\nname = "fixture"\n')
+        (fixture / 'target/debug/out.d').write_text('/home/someone/work/fixture/src/main.rs\n')
+        (skill / 'scripts/__pycache__').mkdir(parents=True)
+        (skill / 'scripts/__pycache__/tool.cpython-312.pyc').write_bytes(b'\x00')
+        result = self.bundle('validate')
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.write_manifest()
+        self.install()
+        installed = self.repo / '.ai/skills/plan-execution'
+        self.assertTrue((installed / 'evals/files/Cargo.toml').is_file())
+        self.assertFalse((installed / 'evals/files/target').exists())
+        self.assertFalse((installed / 'scripts/__pycache__').exists())
+        (installed / 'evals/files/target').mkdir()
+        (installed / 'evals/files/target/out.d').write_text('built locally\n')
+        self.assertIn('(0 changed)', self.install().stdout, 'build output is not a local edit')
+        self.render()
+        for tool in ('.claude', '.agents'):
+            rendered = self.repo / tool / 'skills/plan-execution/evals/files'
+            self.assertTrue((rendered / 'Cargo.toml').is_file())
+            self.assertFalse((rendered / 'target').exists())
+
     def test_reinstall_without_changes_is_a_no_op(self):
         self.write_manifest()
         self.install()
