@@ -176,6 +176,67 @@
         "Writes no code"
       ],
       "setup": "Before running, add an inline note to the plan under Assumptions, for example '> NOTE: a retry must never produce a second file for the same export.'"
+    },
+    {
+      "id": 10,
+      "name": "new-plan-has-lifecycle-fields",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "Use principal-engineer-planner to write a plan for adding a per-customer daily export quota to the order export described in docs/plans/order-export.md. Do not implement.",
+      "expected_output": "Writes a new plan from the template with Status: draft, a filled Docs Impact section, and an As-built placeholder.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/research/order-export-codebase.md",
+        "evals/files/config/exports.json"
+      ],
+      "expectations": [
+        "The new plan starts with Status: draft and does not mark itself agreed",
+        "Has a Docs Impact section naming architecture changes (or None), behaviour changes with their test file, and other docs",
+        "Each ADR candidate, if any, names the decision and a rejected alternative with a reason",
+        "Has an As-built section that says 'Not started' and is otherwise empty",
+        "The handoff prompt says to update the docs listed in Docs Impact"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "light-plan-has-no-adr-candidates",
+      "tags": [
+        "lifecycle",
+        "negative"
+      ],
+      "prompt": "Use principal-engineer-planner for a light plan: rename the helper exportRows to writeExportRows in the export worker. Do not implement.",
+      "expected_output": "Writes a light plan with Docs impact 'None' and no ADR candidates.",
+      "files": [
+        "evals/files/docs/research/order-export-codebase.md"
+      ],
+      "expectations": [
+        "Classifies the work as a light plan",
+        "Docs Impact says None, and no ADR candidate is listed",
+        "Status is draft",
+        "Writes no ADR and creates nothing under docs/adr/ or docs/architecture/"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "agreement-sets-status-agreed",
+      "tags": [
+        "lifecycle",
+        "with-record"
+      ],
+      "prompt": "Conversation so far: the planner proposed acceptance scenarios AC-01 to AC-04 for docs/plans/order-export.md. Author: 'I agree AC-01 to AC-04, and you can start implementing.'",
+      "expected_output": "Records test agreement and authorization, sets Status: agreed, and hands off to plan-execution.",
+      "files": [
+        "evals/files/docs/plans/order-export.md",
+        "evals/files/docs/plans/order-export-review.md"
+      ],
+      "expectations": [
+        "Records test agreement with the author and today as the source",
+        "Records implementation authorization separately from test agreement",
+        "Sets Status: agreed in the plan header (adding the field if missing)",
+        "Does not set in-progress or done",
+        "Hands off to plan-execution"
+      ]
     }
   ]
 }

@@ -428,6 +428,7 @@ class LifecycleEntities(unittest.TestCase):
 
     SKILLS = ROOT / 'catalog' / 'skills'
     NEW = ('adr', 'plan-sweep')
+    WITH_LIFECYCLE_EVALS = ('adr', 'plan-sweep', 'plan-validation', 'principal-engineer-planner')
 
     def skill(self, name):
         path = self.SKILLS / name / 'SKILL.md'
@@ -445,6 +446,14 @@ class LifecycleEntities(unittest.TestCase):
         front, _ = self.skill('plan-sweep')
         self.assertEqual(front['metadata'].get('invocation'), 'explicit')
         self.assertTrue((self.SKILLS / 'plan-sweep/references/architecture-docs.md').is_file())
+
+    def test_lifecycle_evals_have_three_cases_including_a_negative_one(self):
+        for name in self.WITH_LIFECYCLE_EVALS:
+            file = self.SKILLS / name / 'evals' / 'evals.json'
+            self.assertTrue(file.is_file(), f'{name} has no evals.json')
+            cases = [c for c in json.loads(file.read_text())['evals'] if 'lifecycle' in c.get('tags', [])]
+            self.assertGreaterEqual(len(cases), 3, f'{name}: lifecycle eval cases')
+            self.assertTrue(any('negative' in c['tags'] for c in cases), f'{name}: no negative lifecycle case')
 
     def test_plan_template_has_status_docs_impact_and_as_built(self):
         template = (self.SKILLS / 'principal-engineer-planner/references/plan-template.md').read_text()

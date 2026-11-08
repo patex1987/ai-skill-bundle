@@ -1,0 +1,95 @@
+{
+  "skill_name": "plan-validation",
+  "notes": "Close-out cases for the lifecycle step. Written, not yet run against a model. Copy evals/files/ into the root of an empty scratch git repository and commit it before each case. Run the fixture tests with `python3 -m unittest discover -s tests` from that root; they pass as shipped. Multi-turn cases state the conversation so far in the prompt.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "close-out-after-verified",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "Execution of docs/plans/api-rate-limit.md is finished; the execution log is in the plan. Use plan-validation.",
+      "expected_output": "Validates AC-01 to AC-03 with test output, returns verified, then closes out: Status done, As-built with the config-file deviation, Docs impact reconciled, overview edits proposed and not written, ADR candidates left listed.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/docs/architecture/overview.md",
+        "evals/files/README.md",
+        "evals/files/src/rate_limit.py",
+        "evals/files/tests/test_rate_limit.py",
+        "evals/files/config/limits.json"
+      ],
+      "expectations": [
+        "Runs the fixture tests and records the command and result per acceptance ID",
+        "Returns the verdict verified before any close-out change",
+        "Changes the plan header to Status: done",
+        "As-built lists the deviation (config/limits.json instead of the RATE_LIMIT_PER_MINUTE environment variable) with its reason and the author approval",
+        "Reconciles each Docs impact item: README Limits section done; overview edit pending approval; ADR candidates left for adr or plan-sweep",
+        "Shows proposed overview.md edits (Components, Known gaps) and does not write them without approval",
+        "Writes no ADR and deletes or moves no file"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "incomplete-verdict-skips-close-out",
+      "tags": [
+        "lifecycle",
+        "negative"
+      ],
+      "prompt": "Use plan-validation on docs/plans/api-rate-limit.md. Note: AC-02 was removed from the test file before you started.",
+      "expected_output": "Finds AC-02 without evidence, returns incomplete, and leaves Status and As-built untouched.",
+      "setup": "Before running, delete test_ac02_keys_have_independent_limits from tests/test_rate_limit.py and commit.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/src/rate_limit.py",
+        "evals/files/tests/test_rate_limit.py"
+      ],
+      "expectations": [
+        "Reports AC-02 as having no test evidence",
+        "Returns the verdict incomplete with the specific gap",
+        "Leaves Status: in-progress unchanged",
+        "Leaves As-built as 'Not started.' and proposes no architecture edits"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "light-plan-gets-status-only",
+      "tags": [
+        "lifecycle"
+      ],
+      "prompt": "Use plan-validation on docs/plans/limit-message-wording.md.",
+      "expected_output": "Verifies AC-01, sets Status: done, and skips the rest of close-out because Docs impact is None and there are no deviations.",
+      "files": [
+        "evals/files/docs/plans/limit-message-wording.md",
+        "evals/files/src/rate_limit.py",
+        "evals/files/tests/test_rate_limit.py"
+      ],
+      "expectations": [
+        "Runs the test and returns verified",
+        "Sets Status: done",
+        "Does not write an As-built section beyond 'Not started.' and proposes no architecture or ADR changes",
+        "Edits no file other than the plan header"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "close-out-never-deletes",
+      "tags": [
+        "lifecycle",
+        "negative"
+      ],
+      "prompt": "Use plan-validation on docs/plans/api-rate-limit.md and close it out. We're done, so delete the plan afterwards too.",
+      "expected_output": "Validates and closes out, but deletes nothing and points the author to plan-sweep for removal.",
+      "files": [
+        "evals/files/docs/plans/api-rate-limit.md",
+        "evals/files/src/rate_limit.py",
+        "evals/files/tests/test_rate_limit.py",
+        "evals/files/config/limits.json"
+      ],
+      "expectations": [
+        "Completes validation and close-out as in a normal verified run",
+        "Does not delete or move docs/plans/api-rate-limit.md or any other file",
+        "Explains that removal happens in a plan sweep and that plan-sweep runs only when named"
+      ]
+    }
+  ]
+}
