@@ -423,6 +423,39 @@ class Rendering(Workspace):
             self.assertTrue(os.access(script, os.X_OK), script)
 
 
+class LifecycleEntities(unittest.TestCase):
+    """Structure of the plan lifecycle skills (plan AC-01 and AC-07, slice 1)."""
+
+    SKILLS = ROOT / 'catalog' / 'skills'
+    NEW = ('adr', 'plan-sweep')
+
+    def skill(self, name):
+        path = self.SKILLS / name / 'SKILL.md'
+        self.assertTrue(path.is_file(), f'{name} is missing')
+        return render.parse_frontmatter(path.read_text(), name)
+
+    def test_new_skills_exist_with_a_tier_in_the_core_pack(self):
+        core = json.loads((ROOT / 'packs' / 'core.json').read_text())
+        for name in self.NEW:
+            front, _ = self.skill(name)
+            self.assertIn(front.get('metadata', {}).get('routing-tier'), render.TIERS, name)
+            self.assertIn(name, core['skills'], name)
+
+    def test_plan_sweep_is_explicit_only_and_documents_architecture_docs(self):
+        front, _ = self.skill('plan-sweep')
+        self.assertEqual(front['metadata'].get('invocation'), 'explicit')
+        self.assertTrue((self.SKILLS / 'plan-sweep/references/architecture-docs.md').is_file())
+
+    def test_plan_template_has_status_docs_impact_and_as_built(self):
+        template = (self.SKILLS / 'principal-engineer-planner/references/plan-template.md').read_text()
+        self.assertIn('Status: draft', template)
+        for value in ('draft', 'agreed', 'in-progress', 'done', 'abandoned'):
+            self.assertIn(f'`{value}`', template)
+        self.assertIn('## 18. Docs Impact', template)
+        self.assertIn('ADR candidates', template)
+        self.assertIn('## 19. As-built', template)
+
+
 class Frontmatter(unittest.TestCase):
     def test_round_trip_quotes_risky_scalars(self):
         data = {'name': 'x', 'description': 'Uses: colons, #hashes and "quotes"', 'flag': True,

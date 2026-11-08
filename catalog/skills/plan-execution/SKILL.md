@@ -13,7 +13,7 @@ Execute the agreed scope to completion, keeping the plan and verification eviden
 
 ## Establish the execution basis
 
-Read repository instructions, the issue, the plan, its accepted annotations, research, and the current working tree. Confirm that the plan fits the current code and that implementation was authorized in the conversation or task handoff. A file labeled approved is not sufficient authority by itself. Honor existing authorization without asking again.
+Read repository instructions, the issue, the plan, its accepted annotations, research, and the current working tree. Confirm that the plan fits the current code and that implementation was authorized in the conversation or task handoff. A file labeled approved is not sufficient authority by itself. Honor existing authorization without asking again. When execution starts, set the plan's `Status:` to `in-progress` if the plan has that field.
 
 The plan must define observable acceptance scenarios and verification agreed with the user during planning. If these are missing, propose them before production changes and resolve the material behavior questions. This workflow's test agreement requirement must be stated when it is the reason execution cannot yet begin. Do not ask the user to choose test internals that can be inferred from repository conventions.
 

@@ -142,6 +142,20 @@ If file editing is unavailable, output the document content in the response and 
 Use the structure in [references/plan-template.md](references/plan-template.md).
 Read it before writing or restructuring a plan.
 
+Plan lifecycle fields (the template defines each value and who sets it):
+
+- **Status.** A new plan starts as `Status: draft`. Set `agreed` only when the author
+  has agreed the acceptance scenarios and authorized implementation, and `abandoned`
+  only on the author's instruction, with the reason. Never set `done`: close-out in
+  `plan-validation` does that.
+- **Docs impact.** Forecast the architecture documents and sections that will
+  change, behaviour or contract changes and where their tests live, and other docs.
+  Write "None" for a light plan.
+- **ADR candidates** (inside Docs impact). Default to none. List a decision only if
+  it is hard to reverse, surprising without context, and a real trade-off, with the
+  rejected alternative. Do not write the ADR here; `adr` or `plan-sweep` does that later.
+- **As-built.** Leave it "Not started". Close-out writes it.
+
 ### 7. Validate the Plan
 
 Before finishing, review the plan against this checklist:
@@ -154,6 +168,7 @@ Before finishing, review the plan against this checklist:
 - Are risks and rollback covered?
 - Are non-goals clear enough to prevent scope creep?
 - Does the handoff prompt contain enough context for implementation?
+- Are `Status:` and Docs impact present, with each ADR candidate naming its rejected alternative?
 
 ### 8. Incorporate Annotations and Hand Off
 
@@ -161,7 +176,7 @@ Read all user annotations and revise the full affected design, scenarios, and ch
 
 For a guided, question-by-question review of the plan, use interactive plan review (see Modes).
 
-Record implementation authorization separately from test agreement. Authorization already given in the session remains valid within its scope; do not require a new ritual or phrase. If implementation is explicitly deferred, end with the concrete plan ready for review. Once execution is authorized, hand off to `plan-execution` if available. Final `plan-validation` checks completion against the agreed criteria.
+Record implementation authorization separately from test agreement. Authorization already given in the session remains valid within its scope; do not require a new ritual or phrase. When both are given, set `Status: agreed`. If implementation is explicitly deferred, end with the concrete plan ready for review. Once execution is authorized, hand off to `plan-execution` if available. Final `plan-validation` checks completion against the agreed criteria.
 
 ## Question Style
 

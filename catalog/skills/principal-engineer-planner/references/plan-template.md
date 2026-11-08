@@ -3,8 +3,23 @@
 The structure for `docs/plans/<feature>.md`, used by `principal-engineer-planner`
 in authoring mode.
 
+`Status:` records what has actually happened to the plan, never an intention:
+
+| Value | Set by | When |
+|---|---|---|
+| `draft` | planner | The plan is being written, annotated, or reviewed. |
+| `agreed` | planner | The author agreed the acceptance scenarios and authorized implementation. |
+| `in-progress` | `plan-execution` | Execution started. |
+| `done` | `plan-validation` close-out | Validation returned **verified**. |
+| `abandoned` | planner, on the author's instruction | The author dropped the plan. Record why in As-built. |
+
+Plans written before this field existed may have no `Status:`; treat them as unknown,
+not as done.
+
 ````md
 # Implementation Plan: <Name>
+
+Status: draft
 
 ## 1. Summary
 
@@ -134,8 +149,26 @@ Include feature flags, phased rollout, backward compatibility, operational check
 - [ ] Rollout and rollback are defined
 - [ ] Implementation steps are ordered and concrete
 - [ ] Each step has a suggested model tier with a reason
+- [ ] Docs impact is listed, or "None" for a light plan
 
-## 18. Handoff Prompt for Implementation Agent
+## 18. Docs Impact
+
+Forecast of the durable documents this change will touch. Close-out reconciles it
+with what was built. Write "None" for a light plan.
+
+- Architecture: <document under docs/architecture/ and the section that changes, or "None">
+- ADR candidates: <decision>; rejected alternative: <alternative and why>. List only
+  decisions that are hard to reverse, surprising without context, and a real
+  trade-off (see `adr`). Usually none.
+- Behaviour or contract changes: <change>; tests in <file>
+- Other docs: <README, runbooks, guides, or "None">
+
+## 19. As-built
+
+Not started. `plan-validation` writes this at close-out: deviations from the plan
+with their reasons, the Docs impact reconciliation, and a link to the validation record.
+
+## 20. Handoff Prompt for Implementation Agent
 
 Copy/paste this prompt into a coding agent:
 
@@ -150,7 +183,7 @@ Constraints:
 - Implement the agreed tests first and run them before production changes.
 - Use plan-execution if available; otherwise follow the test-first sequence in this plan.
 - Record focused check results and finish with required validation against acceptance IDs.
-- Update docs described in the plan.
+- Update the docs listed in Docs Impact.
 - If implementation reality differs from the plan, stop and update the plan or ask for approval before changing scope.
 
 Relevant files/modules:
