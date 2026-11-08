@@ -64,6 +64,39 @@ upgrades and local drift.
   recorded in its previous manifest (`.ai/generated-outputs.txt`), and refuses to
   overwrite files it did not generate.
 
+### Adding skills from other sources
+
+A repository is not limited to the catalog. Skills from GitHub, a marketplace, or
+your own collection can sit next to the catalog's skills. The catalog does not try
+to cover everything (for example polished, presentation-grade diagrams).
+
+1. Copy the skill folder (the directory containing `SKILL.md`) to
+   `.ai/skills/<name>/` in the target repository and commit it. It is a **local**
+   entity: `install` never touches it, and `render.py` renders it to every enabled
+   tool like a catalog skill.
+2. Requirements: a `SKILL.md` with frontmatter whose `name` is kebab-case and
+   matches the folder name, and no symlinks inside the folder (the renderer
+   refuses them). `metadata.routing-tier` is optional; set one in `bundle.json`
+   under `routing.overrides` if you want it routed like the rest.
+3. Add a repo-specific overlay (`.ai/overlays/<name>.md`) if the skill needs local
+   paths or conventions.
+4. Record the source and version (URL and commit) in the repository's own docs or
+   the skill's overlay. The bundle keeps no lock or provenance for local skills,
+   and updating one is a manual re-copy.
+
+What does not carry over: anything outside the skill folder, such as a plugin's
+slash commands, hooks, or MCP servers. Install those with the tool's own mechanism.
+
+Avoid installers that write straight into `.claude/skills/` or `.agents/skills/`
+(for example `npx skills add`). Those folders are generated and gitignored, so the
+skill would not be committed and would not reproduce on a fresh clone. If a rendered
+skill later has the same name, the renderer refuses to overwrite the unmanaged
+files. Use the installer to fetch the skill if you like, then copy the folder into
+`.ai/skills/`.
+
+Review third-party skills before adding them: they can bundle scripts, and size
+adds up in every repository that commits them.
+
 ### What gets rendered
 
 | Canonical | Claude Code | Codex | Cursor | Gemini CLI |
