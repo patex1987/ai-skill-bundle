@@ -471,3 +471,22 @@ Plan: `docs/plans/typescript-naming-cohesion-validation.md`.
   - The evals have not been run against a model.
   - The skill is not installed in any consuming repository; that is a separate
     task there.
+
+## Fix: local build output inside catalog skills
+
+- **Problem:** the `rust-style` eval fixture is a real Cargo crate, so editors
+  build it in place and write `evals/files/target/`. Git ignores that folder, but
+  `validate`, the install digest and copy, and `render.py` walk the filesystem.
+  A local `target/` failed `validate` (host paths in build output) and 33 of 43
+  tests, and would have been copied into consuming repositories and rendered into
+  their tool folders.
+- **Fix:** one shared rule in `render.py` (`is_build_output`, renderer 2.3.0) that
+  `aibundle.py` also uses. It skips `target/` next to a `Cargo.toml`, `__pycache__/`,
+  `node_modules/`, Python tool caches, and `*.pyc`/`*.pyo`, in `validate`, digests,
+  install copies, and rendered skills. A build folder in an installed skill is not
+  a local edit.
+- **Tests:** `test_local_build_output_is_ignored_everywhere` plants a Cargo
+  `target/` with a host path and a `__pycache__/` in a skill; it failed on
+  `validate` before the fix. 44 tests pass, also with the real `target/` present.
+- **Not covered:** `render.py --check` still reports a rendered skill as stale if
+  something builds inside the rendered copy under `.claude/` or `.agents/`.

@@ -42,7 +42,7 @@ class BundleError(Exception):
 
 def digest(path):
     """Content digest over relative names, executable bits, and bytes."""
-    files = [path] if path.is_file() else sorted(p for p in path.rglob('*'))
+    files = [path] if path.is_file() else render.entity_files(path)
     rows = []
     for file in files:
         if file.is_symlink():
@@ -248,7 +248,7 @@ def validate_catalog():
                 if not resolved.is_relative_to(path.resolve()) or not resolved.exists():
                     problems.append(f'{where}: link {target!r} must resolve inside the skill directory')
             problems.extend(validate_evals(path, name))
-        files = [path] if path.is_file() else [p for p in path.rglob('*')]
+        files = [path] if path.is_file() else render.entity_files(path)
         for file in files:
             if file.is_symlink():
                 problems.append(f'{file.relative_to(ROOT)}: symlinks are not allowed')
@@ -392,7 +392,9 @@ def apply_install(repo, actions, pack_order):
         if verb in ('create', 'update'):
             target.parent.mkdir(parents=True, exist_ok=True)
             if item['source'].is_dir():
-                shutil.copytree(item['source'], target)
+                source = item['source']
+                shutil.copytree(source, target, ignore=lambda folder, names: [
+                    n for n in names if render.is_build_output(Path(folder) / n, source)])
             else:
                 shutil.copy2(item['source'], target)
     lock = {
