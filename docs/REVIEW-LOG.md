@@ -543,3 +543,26 @@ slice 1 (steps 1-6).
   - Nothing is installed in a consuming repository.
   - Slices 2-4 (debugging, isolation, phase boundaries, diagrams, customer lens,
     plan lint, size budget, branch flow) are not started.
+
+## Follow-up: `programming-kb` uses the vault's own CLI
+
+The vault gained its own retrieval CLI (`.kb/kb.py`: ranked search, note cards,
+link graph, freshness queue) and in-vault workflow skills with approval steps.
+The catalog skill still told agents to read `index.md` first, which costs about
+11k tokens in the current vault and grows with every note.
+
+- **Tool choice:** use `$PROGRAMMING_KB_DIR/.kb/kb.py` when it exists, and fall back to
+  `scripts/kb-query.sh` / `rg` otherwise. The CLI is not vendored into the catalog:
+  the vault owns its ranking and freshness rules, so there is one copy.
+- **Retrieval:** `search` -> `card` -> read 1-4 notes -> `related`, with rephrasing on
+  misses. The instruction to read the whole `index.md` is removed.
+- **Staleness:** recognises the vault's optional `reviewed:` and `volatility:`
+  frontmatter, or defers to `kb.py stale`.
+- **Updates:** the skill no longer edits the vault by default. It reports stale
+  notes and points to the vault's own review and ingest workflows, so their
+  approval steps are not bypassed.
+- **Fix:** `kb-query.sh tags` and `tag <tag>` missed notes with inline tag lists
+  (`tags: [a, b]`) and quoted tags. Checked against a local vault: `tag multi-agent`
+  went from 4 to 8 notes, and `tags` from 358 to 401 distinct tags.
+- **Not done:** no evals exist for this skill, and nothing is reinstalled in
+  consuming repositories. They pick the change up with `aibundle.py install`.

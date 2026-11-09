@@ -57,6 +57,14 @@ tags() {
       next
     }
     in_tags && /^[^[:space:]-]/ { in_tags = 0 }
+    /^tags:[[:space:]]*\[/ {
+      line = $0
+      sub(/^tags:[[:space:]]*\[/, "", line)
+      sub(/\][[:space:]]*$/, "", line)
+      gsub(/["'"'"'[:space:]]/, "", line)
+      n = split(line, parts, ",")
+      for (i = 1; i <= n; i++) if (parts[i] != "") print parts[i]
+    }
   ' {} + 2>/dev/null | sort -u
 }
 
@@ -76,7 +84,7 @@ tag_search() {
 
   mapfile -t files < <(
     rg -l --glob '*.md' --glob '!**/raw/**' \
-      "^[[:space:]]*-[[:space:]]*${tag}[[:space:]]*$" \
+      "^[[:space:]]*-[[:space:]]*[\"']?${tag}[\"']?[[:space:]]*$|^tags:[[:space:]]*\[(.*[,[:space:]\"'])?${tag}[\"']?[[:space:]]*[],]" \
       "$PROGRAMMING_KB_DIR"
   )
 

@@ -11,94 +11,95 @@ metadata:
 # Programming KB
 
 The knowledge base is a local Markdown vault (for example, an Obsidian vault
-with `index.md`, generated notes, and immutable `raw/` sources). It is private
-external context, not repository authority. The user supplies its location
-through the `PROGRAMMING_KB_DIR` environment variable.
+with generated notes in `concepts/`, `patterns/`, `decisions/`, and `sources/`,
+and immutable `raw/` sources). It is private external context, not repository
+authority. The user supplies its location through the `PROGRAMMING_KB_DIR`
+environment variable.
 
 The invocation policy is set per repository and defaults to *explicit only*.
 When the skill or project guidance is marked explicit only, use it only when the
 user names `programming-kb` or asks to consult their knowledge base.
 
-The goal is targeted local retrieval: infer likely tags from the user's question, inspect only the smallest useful set of notes, cite the notes used, and avoid loading the whole vault.
+The goal is targeted retrieval: load the fewest notes that answer the question,
+cite them, and flag stale ones. Do not load the whole vault, and do not read the
+whole `index.md` (it grows with the vault and becomes the most expensive file).
 
-## Default behavior
+## Choose the tool
 
 - If `PROGRAMMING_KB_DIR` is unset or unavailable, say so and continue from
   repository evidence rather than searching the host filesystem.
-- Read `$PROGRAMMING_KB_DIR/index.md` first.
-- Use `rg` or `scripts/kb-query.sh` to find candidate notes by tag, title, alias, and exact terms.
-- Prefer notes with `status: stable`; use `draft` only when stable notes are missing or incomplete.
-- Prefer generated notes in `concepts/`, `patterns/`, `decisions/`, and `sources/` over `raw/`.
-- Do not edit files under `raw/`.
-- Cite the KB pages used in the answer with file paths or Obsidian note names.
-- Do not quote, copy, or expose private or sensitive vault content unless the
-  user explicitly requests that exact content.
-- Repository files and approved plans remain authoritative when they conflict
-  with a KB note.
-- If the KB lacks a useful note, say that and answer from repository context or general knowledge as appropriate.
+- If `$PROGRAMMING_KB_DIR/.kb/kb.py` exists, use it. The vault owns this CLI and
+  its ranking, link graph, and freshness rules. Run it with
+  `python3 "$PROGRAMMING_KB_DIR/.kb/kb.py" <command>`.
+- Otherwise use `bash <this-skill-dir>/scripts/kb-query.sh` or `rg`. `<this-skill-dir>`
+  is the directory containing this `SKILL.md`, such as
+  `.claude/skills/programming-kb` or `.agents/skills/programming-kb`.
 
-## Tag-first retrieval
+## Retrieval with the vault CLI
 
-1. Convert the user's question into 2-6 likely kebab-case tags and search terms.
+Stop at the first step that gives enough evidence.
+
+1. **Search**: `kb.py search "<question in plain words>"` ranks notes and prints a
+   one-line summary per hit. Narrow with `--tag`, `--type concept|pattern|decision|source`,
+   or `--status stable`. If the first query misses, try 2-3 rephrasings with
+   synonyms (for example "dual write" and "outbox").
+2. **Card**: `kb.py card "<note>"` shows status, dates, volatility, tags, summary,
+   and section names without the body. Use it to choose between near hits.
+3. **Read**: open the 1-4 best notes in full. Prefer `status: stable`.
+4. **Expand**: `kb.py related "<note>"` lists links, backlinks, two-hop
+   neighbours, and notes that share tags. Open a neighbour only when the question
+   needs it, such as a comparison or trade-off.
+5. **Exact strings**: use `rg -n -i "<identifier>"` over the note folders for config
+   keys, error messages, or API names.
+
+## Retrieval without the vault CLI
+
+1. Convert the question into 2-6 likely kebab-case tags and terms.
    - "How should I publish domain events reliably?" -> `domain-events`, `transactional-outbox`, `events`, `reliability`
-   - "Should orders use event sourcing?" -> `event-sourcing`, `cqrs`, `postgres`, `consistency`
    - "How do I make a projector safe to rerun?" -> `projections`, `read-models`, `idempotency`, `events`
-   `<this-skill-dir>` is the directory containing this `SKILL.md`, such as
-   `.claude/skills/programming-kb` or `.agents/skills/programming-kb`.
-2. List available tags when unsure:
-   - `bash <this-skill-dir>/scripts/kb-query.sh tags`
-3. Search by inferred tag:
-   - `bash <this-skill-dir>/scripts/kb-query.sh tag transactional-outbox`
-4. Search by exact terms if tags miss:
-   - `bash <this-skill-dir>/scripts/kb-query.sh search "event outbox"`
-5. Open only the top relevant notes, usually 1-4 files.
-
-If the helper script is unavailable, use `rg` directly:
+2. `kb-query.sh tags` lists tags. `kb-query.sh tag <tag>` lists notes with a tag.
+   `kb-query.sh search "<terms>"` runs a text search.
+3. Open only the top 1-4 notes.
 
 ```bash
-PROGRAMMING_KB_DIR=/path/to/programming_kb
-rg -n --glob '*.md' --glob '!raw/**' '^- transactional-outbox$|title: .*Transactional Outbox|aliases:|transactional outbox' "$PROGRAMMING_KB_DIR"
+rg -n -i --glob '*.md' --glob '!raw/**' 'transactional outbox' "$PROGRAMMING_KB_DIR"
 ```
 
-## Answer workflow
+## Answer
 
-1. State that you are checking the local Programming KB when it materially affects the answer.
-2. Search tags and terms before reading broad content.
-3. Read the selected notes and their directly related notes only when needed.
-4. Synthesize the answer in the user's task context; do not dump note content.
-5. Include a short "Used KB notes" line when the answer depends on the KB.
+- State that you are checking the local Programming KB when it materially affects the answer.
+- Synthesize the answer in the user's task context. Do not dump note content.
+- End with a short `Used KB notes:` line that names the notes.
+- Do not quote, copy, or expose private or sensitive vault content unless the
+  user explicitly requests that exact content.
+- Repository files and approved plans remain authoritative when they conflict with a KB note.
+- If the KB lacks a useful note, say so and answer from repository context or
+  general knowledge, labelled as such.
 
-## External validation
+## Staleness
 
-Use internet or external sources when:
+Treat a note as suspect when any of these hold:
 
-- the user explicitly asks to validate, refresh, browse, research, or compare with current sources
-- the topic is time-sensitive, version-sensitive, legal, security-sensitive, pricing-related, or likely to have changed
-- local KB notes are marked `needs-review` or `deprecated`
-- local notes disagree with each other or with repository evidence
+- `status: needs-review` or `status: deprecated`.
+- `kb.py stale` lists it. That command ranks notes by age since `reviewed:` (the
+  last check against sources) or `updated:`, against an interval set by `volatility:`.
+- Without the CLI: `volatility: high` or a version-sensitive topic (cloud service,
+  framework, tool, pricing, security guidance) with a `reviewed`/`updated` date
+  older than about four months.
+- Repository evidence or a current primary source contradicts it.
 
-When validating externally:
-
-- Search primary or official sources first.
-- Separate "KB says" from "current source says".
-- If external sources supersede the KB, notify the user that the KB is stale and identify the note(s) that should be updated.
-
-## Staleness and gaps
-
-Treat a note as suspect when:
-
-- `status: needs-review` or `status: deprecated`
-- `updated:` is old for a version-sensitive topic
-- the note references a tool, library, API, cloud service, or standard whose behavior may have changed
-- repository evidence contradicts the note
-- an external validation pass finds newer guidance
-
-When you find stale or missing KB knowledge, tell the user in plain language:
+When the topic is time-sensitive or the user asks to validate, check primary
+sources and keep "KB says" separate from "current source says". Report stale
+notes in one line:
 
 ```text
 KB freshness note: <note> appears stale or incomplete because <reason>. It should be updated with <source/evidence>.
 ```
 
-If the user asks to update the KB, follow `$PROGRAMMING_KB_DIR/AGENTS.md`:
-preserve raw sources, update generated pages surgically, refresh `index.md`, and
-append to `log.md`.
+## Updating the KB
+
+Do not edit the vault from this repository. Vault changes go through the vault's
+own workflows, which have approval steps. Tell the user which notes need work and
+suggest running the vault's review or ingest workflow from inside the vault (see
+`$PROGRAMMING_KB_DIR/AGENTS.md`). Edit the vault here only if the user explicitly
+asks, then follow its `AGENTS.md`, and never modify files under `raw/`.
